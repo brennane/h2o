@@ -143,8 +143,9 @@ public abstract class DKV {
 
 
   /** Return the calculated name of a Frame Key given a ValueArray Key. */
-  static public String calcConvertedFrameKeyString(String valueArrayKeyString) {
-    return valueArrayKeyString + ".autoframe";
+  static public String calcConvertedFrameKeyString(String keyStr) {
+    if( isConvertedVAKeyString(keyStr) ) return unconvertVAKeyString(keyStr);
+    return keyStr + ".autoframe";
   }
   static public String unconvertFrameKeyString(String s) {
     return s.substring(0,s.length()-".autoframe".length());
@@ -156,8 +157,9 @@ public abstract class DKV {
   }
 
   /** Return the calculated name of a ValueArray Key given a Frame Key. */
-  static public String calcConvertedVAKeyString(String valueArrayKeyString) {
-    return valueArrayKeyString + ".autoVA";
+  static public String calcConvertedVAKeyString(String keyStr) {
+    if( isConvertedFrameKeyString(keyStr) ) return unconvertFrameKeyString(keyStr);
+    return keyStr + ".autoVA";
   }
   static public String unconvertVAKeyString(String s) {
     return s.substring(0,s.length()-".autoVA".length());
