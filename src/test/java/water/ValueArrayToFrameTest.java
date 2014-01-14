@@ -39,7 +39,7 @@ public class ValueArrayToFrameTest extends TestUtil {
       File csv1 = File.createTempFile("h2o", null);
       Utils.writeFileAndClose(csv1, new CsvVAStream(va, null));
 
-      frame = va.asFrame();
+      frame = va.convert();
       File csv2 = File.createTempFile("h2o", null);
       Utils.writeFileAndClose(csv2, frame.toCSV(true));
 

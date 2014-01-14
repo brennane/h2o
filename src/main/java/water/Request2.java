@@ -501,9 +501,6 @@ public abstract class Request2 extends Request {
       else if( arg._field.getType() == float.class && value instanceof Double )
         value = ((Double) value).floatValue();
       //
-      else if( arg._field.getType() == Frame.class && value instanceof ValueArray )
-        value = ((ValueArray) value).asFrame(input);
-      //
       else if( value instanceof NumberSequence ) {
         double[] ds = ((NumberSequence) value)._arr;
         if( arg._field.getType() == int[].class ) {

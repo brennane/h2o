@@ -442,7 +442,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
    * Also stores the header to its appropriate key. This will be the VA header
    * of the parsed dataset.
    */
-  protected void createValueArrayHeader() {
+  protected ValueArray createValueArrayHeader() {
     assert (_phase == Pass.TWO);
     Column[] cols = new Column[_ncolumns];
     int off = 0;
@@ -467,6 +467,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     // finally make the value array header
     ValueArray ary = new ValueArray(_job.dest(), _numRows, off, cols);
     UKV.put(_job.dest(), ary);
+    return ary;
   }
 
   protected void createEnums() {

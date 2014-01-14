@@ -1,6 +1,7 @@
 package water.parser;
 
 import java.util.Arrays;
+import water.ValueArray;
 
 public class SVMLightDParseTask extends DParseTask {
   public SVMLightDParseTask() {}
@@ -52,13 +53,13 @@ public class SVMLightDParseTask extends DParseTask {
     super.reduce(dpt);
   }
 
-  @Override public void createValueArrayHeader(){
+  @Override public ValueArray createValueArrayHeader(){
     String [] colNames = new String[_ncolumns];
     colNames[0] = "Target";
     for(int i = 1; i < _ncolumns; ++i)
       colNames[i] = "V" + i;
     _colNames = colNames;
-    super.createValueArrayHeader();
+    return super.createValueArrayHeader();
   }
   @Override protected void createEnums() {} // SVMlight has no strings, we don't need any enums
 }

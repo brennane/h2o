@@ -1466,12 +1466,7 @@ public class RequestArguments extends RequestStatics {
       addPrerequisite(_frkey=frkey);
       setRefreshOnChange();
     }
-    protected Frame fr() {
-      Value v = DKV.get(_frkey.value());
-      if(v != null)
-        return ValueArray.asFrame(v);
-      return null;
-    }
+    protected Frame fr() { return (Frame)DKV.get(_frkey.value()).get(); }
     @Override public Boolean parse(String input) {
       boolean b=false;
       if( false ) ;
@@ -1668,7 +1663,6 @@ public class RequestArguments extends RequestStatics {
       Key k = Key.make(input);
       Value v = DKV.get(k);
       if (v == null)    throw new IllegalArgumentException("Key "+input+" not found!");
-      if( v.isFrame() ) return ValueArray.frameAsVA(k);
       if (!v.isArray()) throw new IllegalArgumentException("Key "+input+" is not a valid HEX key");
       return v.get();
     }
@@ -2422,12 +2416,7 @@ public class RequestArguments extends RequestStatics {
       super(name, true);
       addPrerequisite(_key=key);
     }
-    protected Frame fr() {
-      Value v = DKV.get(_key.value());
-      if(v != null)
-        return ValueArray.asFrame(v);
-      return null;
-    }
+    protected Frame fr() { return (Frame)DKV.get(_key.value()).get();  }
     @Override protected String[] selectValues() { return fr()._names;  }
     @Override protected String selectedItemValue() {
       Frame fr = fr();
@@ -2472,8 +2461,8 @@ public class RequestArguments extends RequestStatics {
     protected transient ThreadLocal<Integer> _colIdx= new ThreadLocal();
     protected Frame fr() {
       Value v = DKV.get(_key.value());
-      if(v == null) throw new IllegalArgumentException("Frame not found");
-      return ValueArray.asFrame(v);
+      if( v == null ) throw new IllegalArgumentException("Frame not found");
+      return (Frame)v.get();
     }
     public FrameKeyMultiVec(String name, TypeaheadKey key, FrameClassVec response, String description, boolean namesOnly) {
       super(name);

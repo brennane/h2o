@@ -535,49 +535,7 @@ public class ValueArray extends Iced implements Cloneable {
    * Frame conversion.
    */
 
-  /** Locally synchronize VA to FVec conversions within this node. */
-  final static Object conversionLock = new Object();
-
-  /** Conversion number is only for logging. */
-  final static AtomicInteger conversionNumber = new AtomicInteger(0);
-
-  public static Frame asFrame(Value value) {
-    Object o = value.get();
-    if(o instanceof ValueArray)
-      return ((ValueArray) o).asFrame(value._key.toString());
-    return (Frame) o;
-  }
-
-  public Frame asFrame() {
-    return asFrame(_key.toString());
-  }
-
-  public Frame asFrame(String input) {
-    synchronized( conversionLock ) {
-      String frameKeyString = DKV.calcConvertedFrameKeyString(input);
-      Key k2 = Key.make(frameKeyString);
-      Value v2 = DKV.get(k2);
-      if( v2 != null ) {
-        // If the thing that aliases with the cached conversion name is not
-        // a Frame, then throw an error.
-        if( !v2.isFrame() ) {
-          throw new IllegalArgumentException(k2 + " is not a frame.");
-        }
-        Log.info("Using existing cached Frame conversion (" + frameKeyString + ").");
-        return v2.get();
-      }
-
-      // No cached conversion.  Make one and store it in DKV.
-      int cn = conversionNumber.getAndIncrement();
-      Log.info("Converting ValueArray to Frame: node(" + H2O.SELF + ") convNum(" + cn + ") key(" + frameKeyString + ")...");
-      Frame frame = convert();
-      DKV.put(k2, frame);
-      Log.info("Conversion " + cn + " complete.");
-      return frame;
-    }
-  }
-
-  private Frame convert() {
+  public Frame convert() {
     String[] names = new String[_cols.length];
     // A new random VectorGroup
     Key keys[] = new Vec.VectorGroup().addVecs(_cols.length);
@@ -645,29 +603,6 @@ public class ValueArray extends Iced implements Cloneable {
     }
   }
 
-  // Cached conversion of a Frame to a VA
-  public static ValueArray frameAsVA(Key frKey) {
-    synchronized( conversionLock ) {
-      String vaKeyString = DKV.calcConvertedVAKeyString(frKey.toString());
-      Key vaKey = Key.make(vaKeyString);
-      Value v = DKV.get(vaKey);
-      if( v != null ) {
-        // If the thing that aliases with the cached conversion name is not a
-        // Frame, then throw an error.
-        if( !v.isArray() ) throw new IllegalArgumentException(vaKey + " is not a VA.");
-        Log.info("Using existing cached VA conversion (" + vaKeyString + ").");
-        return v.get();
-      }
-
-      // No cached conversion.  Make one and store it in DKV.
-      int cn = conversionNumber.getAndIncrement();
-      Log.info("Converting Frame to ValueArray: node(" + H2O.SELF + ") convNum(" + cn + ") key(" + vaKeyString + ")...");
-      ValueArray va = convert((Frame)UKV.get(frKey),vaKey);
-      DKV.put(vaKey, va);
-      Log.info("Conversion " + cn + " complete.");
-      return va;
-    }    
-  }
   // Convert a Frame to a VA
   private static ValueArray convert( Frame fr, Key vaKey ) {
     long nrows = fr.numRows();

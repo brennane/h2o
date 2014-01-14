@@ -32,6 +32,7 @@ public final class ParseDataset extends Job {
   public final Key  _progress;
 
   private ParseDataset(Key dest, Key[] keys) {
+    assert !dest.toString().endsWith("hex");
     destination_key = dest;
     Value dataset = DKV.get(keys[0]);
     long total = dataset.length() * Pass.values().length;
@@ -267,6 +268,7 @@ public final class ParseDataset extends Job {
   }
 
   public static void parse(ParseDataset job, Key [] keys, CustomParser.ParserSetup setup) {
+    assert !job.dest().toString().endsWith("hex");
     if(setup == null){
       ArrayList<Key> ks = new ArrayList<Key>(keys.length);
       for (Key k:keys)ks.add(k);
@@ -341,7 +343,8 @@ public final class ParseDataset extends Job {
     phaseTwo._colNames = setup._columnNames;
     if(setup._header)
       phaseTwo.setColumnNames(setup._columnNames);
-    phaseTwo.createValueArrayHeader();
+    ValueArray ary = phaseTwo.createValueArrayHeader();
+    Frame fr = ary.convert();
   }
 
   public static class ParserFJTask extends H2OCountedCompleter {
@@ -370,6 +373,7 @@ public final class ParseDataset extends Job {
     }
   }
   public static Job forkParseDataset(final Key dest, final Key[] keys, final CustomParser.ParserSetup setup) {
+    assert !dest.toString().endsWith("hex");
     ParseDataset job = new ParseDataset(dest, keys);
     ParserFJTask fjt = new ParserFJTask(job, keys, setup);
     job.start(fjt);
@@ -503,7 +507,7 @@ public final class ParseDataset extends Job {
             System.err.println("failed decompressing data " + key.toString() + " with compression " + comp);
             throw new RuntimeException(t);
           } finally {
-           Closeables.closeQuietly(is);
+            Closeables.closeQuietly(is);
           }
         }
         _p1 = dpt.createPassOne(v, _job, parser);

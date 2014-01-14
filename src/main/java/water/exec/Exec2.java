@@ -60,11 +60,8 @@ public class Exec2 {
     Env env = new Env();
     ArrayList<ASTId> global = new ArrayList<ASTId>();
     for( Value v : H2O.values() ) { // Add Frames to parser's namespace
-      Frame fr;
-      if( v.type()==TypeMap.VALUE_ARRAY ) fr = ValueArray.asFrame(v);
-      else if( v.type()==TypeMap.FRAME  ) fr = v.get();
-      else continue;
-      env.push(fr,v._key.toString());
+      if( v.type()!=TypeMap.FRAME ) continue;
+      env.push((Frame)v.get(),v._key.toString());
       global.add(new ASTId(Type.ARY,v._key.toString(),0,global.size()));
     }
 
