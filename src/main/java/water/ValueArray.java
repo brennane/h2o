@@ -351,8 +351,11 @@ public class ValueArray extends Iced implements Cloneable {
     return getChunkKey(chknum,_key);
   }
   public static Key getChunkKey( long chknum, Key arrayKey ) {
-    byte[] buf = new AutoBuffer().put1(Key.ARRAYLET_CHUNK).put1(0)
-      .put8(chknum<<LOG_CHK).putA1(arrayKey._kb,arrayKey._kb.length).buf();
+    assert arrayKey.type() == Key.BUILT_IN_KEY;
+    assert 0 <= chknum && chknum < Integer.MAX_VALUE;
+    byte[] buf = arrayKey._kb.clone();
+    buf[0] = Key.ARRAYLET_CHUNK;
+    UDP.set4(buf,1+1,(int)chknum);
     return Key.make(buf,(byte)arrayKey.desired());
   }
 
@@ -360,13 +363,13 @@ public class ValueArray extends Iced implements Cloneable {
   public static Key getArrayKey( Key k ) { return Key.make(getArrayKeyBytes(k)); }
   public static byte[] getArrayKeyBytes( Key k ) {
     assert k._kb[0] == Key.ARRAYLET_CHUNK;
-    return Arrays.copyOfRange(k._kb,2+8,k._kb.length);
+    return Arrays.copyOfRange(k._kb,2+4,k._kb.length);
   }
 
   /** Get the chunk-index from a random arraylet sub-key */
   public static long getChunkIndex(Key k) {
     assert k._kb[0] == Key.ARRAYLET_CHUNK;
-    return UDP.get8(k._kb, 2) >> LOG_CHK;
+    return UDP.get4(k._kb, 2);
   }
   public static long getChunkOffset(Key k) { return getChunkIndex(k)<<LOG_CHK; }
 
@@ -386,8 +389,11 @@ public class ValueArray extends Iced implements Cloneable {
     return k;
   }
 
-  static private Futures readPut(Key key, InputStream is, Job job, final Futures fs) throws IOException {
-    UKV.remove(key);
+  static private Futures readPut(Key frKey, InputStream is, Job job, final Futures fs) throws IOException {
+    assert frKey.user_allowed();
+    Key vaKey = makeVAKey(frKey);
+    UKV.remove(frKey);
+    UKV.remove(vaKey);
     byte[] oldbuf, buf = null;
     int off = 0, sz = 0;
     long szl = off;
@@ -403,7 +409,7 @@ public class ValueArray extends Iced implements Cloneable {
       szl += off;
       if( off<CHUNK_SZ ) break;
       if( job != null && job.cancelled() ) break;
-      final Key ckey = getChunkKey(cidx++,key);
+      final Key ckey = getChunkKey(cidx++,vaKey);
       final Value val = new Value(ckey,buf);
       // Do the 'DKV.put' in a F/J task.  For multi-JVM setups, this step often
       // means network I/O pushing the Value to a new Node.  Putting it in a
@@ -427,7 +433,7 @@ public class ValueArray extends Iced implements Cloneable {
 
     // Last chunk is short, read it; combine buffers and make the last chunk larger
     if( cidx > 0 ) {
-      Key ckey = getChunkKey(cidx-1,key); // Get last chunk written out
+      Key ckey = getChunkKey(cidx-1,vaKey); // Get last chunk written out
       byte[] newbuf = MemoryManager.arrayCopyOf(oldbuf,(int)(off+CHUNK_SZ));
       System.arraycopy(buf,0,newbuf,(int)CHUNK_SZ,off);
       // Block for the last DKV to happen, because we're overwriting the last one
@@ -437,16 +443,14 @@ public class ValueArray extends Iced implements Cloneable {
       catch(   ExecutionException e ) { throw  Log.errRTExcept(e); }
       DKV.put(ckey,new Value(ckey,newbuf),fs); // Overwrite the old too-small Value
     } else {
-      Key ckey = getChunkKey(cidx,key);
+      Key ckey = getChunkKey(cidx,vaKey);
       DKV.put(ckey,new Value(ckey,Arrays.copyOf(buf,off)),fs);
     }
-    UKV.put(key,new ValueArray(key,szl),fs);
-
     // Block for all pending DKV puts, which will in turn add blocking requests
     // to the passed-in Future list 'fs'.
     dkv_fs.blockForPending();
 
-    return fs;
+    return new ValueArray(vaKey,szl).close(frKey,fs);
   }
 
   public static class VAStream extends InputStream {
@@ -535,7 +539,30 @@ public class ValueArray extends Iced implements Cloneable {
    * Frame conversion.
    */
 
-  public Frame convert() {
+  // All VA keys are shadows under frame Keys.  Here take a public frame Key
+  // and make the shadow VA key.
+  static public Key makeVAKey( Key frKey ) {
+    assert frKey.user_allowed();
+    return Key.make(frKey.toString(),Key.DEFAULT_DESIRED_REPLICA_FACTOR,Key.BUILT_IN_KEY);
+  }
+  
+  static ValueArray get( Key frKey ) {
+    return UKV.get(makeVAKey(frKey));
+  }
+
+  public Futures close(Key frKey, Futures fs) {
+    assert makeVAKey(frKey).equals(_key);
+    UKV.put(_key,this,fs);
+    if( fs != null ) fs.blockForPending();
+    // Auto-build a Frame upfront, but not for VA raw byte data
+    if( _cols.length>1 || _cols[0]._name!=null ) {
+      Frame fr = convert();
+      UKV.put(frKey,fr,fs);
+    }
+    return fs;                  // Flow coding
+  }
+
+  private Frame convert() {
     String[] names = new String[_cols.length];
     // A new random VectorGroup
     Key keys[] = new Vec.VectorGroup().addVecs(_cols.length);

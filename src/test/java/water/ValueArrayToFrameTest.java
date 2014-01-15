@@ -35,11 +35,11 @@ public class ValueArrayToFrameTest extends TestUtil {
     Frame frame = null;
     try {
       key = loadAndParseFile(file.getName(), file.getPath());
-      ValueArray va = UKV.get(key);
+      ValueArray va = ValueArray.get(key);
       File csv1 = File.createTempFile("h2o", null);
       Utils.writeFileAndClose(csv1, new CsvVAStream(va, null));
 
-      frame = va.convert();
+      frame = UKV.get(key);
       File csv2 = File.createTempFile("h2o", null);
       Utils.writeFileAndClose(csv2, frame.toCSV(true));
 

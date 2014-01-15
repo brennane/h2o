@@ -174,8 +174,12 @@ public class TestUtil {
   // --------
   // Build a ValueArray from a collection of normal arrays.
   // The arrays must be all the same length.
-  public static ValueArray va_maker(Key key, Object... arys) {
-    UKV.remove(key);
+  public static ValueArray va_maker(Key frKey, Object... arys) {
+    assert frKey.user_allowed();
+    Key vaKey = ValueArray.makeVAKey(frKey);
+    UKV.remove(frKey);
+    UKV.remove(vaKey);
+    Futures fs = new Futures();
     // Gather basic column info, 1 column per array
     ValueArray.Column cols[] = new ValueArray.Column[arys.length];
     char off = 0;
@@ -216,7 +220,7 @@ public class TestUtil {
     }
 
     int rowsize = off;
-    ValueArray ary = new ValueArray(key, numrows, rowsize, cols);
+    ValueArray ary = new ValueArray(vaKey, numrows, rowsize, cols);
     int row = 0;
 
     for( int chunk = 0; chunk < ary.chunks(); chunk++ ) {
@@ -260,7 +264,7 @@ public class TestUtil {
       }
 
       Key ckey = ary.getChunkKey(chunk);
-      DKV.put(ckey, new Value(ckey, ab.bufClose()));
+      DKV.put(ckey, new Value(ckey, ab.bufClose()),fs);
     }
 
     // Sum to mean
@@ -289,8 +293,7 @@ public class TestUtil {
       col._sigma = Math.sqrt(col._sigma / (col._n - 1));
 
     // Write out data & keys
-    DKV.put(key, ary);
-    DKV.write_barrier();
+    ary.close(frKey,fs);
     return ary;
   }
 

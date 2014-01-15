@@ -18,7 +18,7 @@ import com.google.gson.*;
 // tests are also good).
 
 public class GLMTest extends TestUtil {
-  @BeforeClass public static void stall() { stall_till_cloudsize(3); }
+  @BeforeClass public static void stall() { stall_till_cloudsize(1); }
 
   static double[] THRESHOLDS;
   static {

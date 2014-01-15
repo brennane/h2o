@@ -7,6 +7,7 @@ import water.*;
 import water.ValueArray.Column;
 import water.parser.ParseDataset.FileInfo;
 import water.util.Utils;
+import water.fvec.Frame;
 
 /** Class responsible for actual parsing of the datasets.
  *
@@ -65,6 +66,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
   int _rpc;
   int _rowsize;
   ParseDataset _job;
+  Key _vaKey;
   String _error;
   CustomParser _parser;
   boolean _streamMode;
@@ -102,6 +104,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     t._colTypes = _colTypes;
     t._nrows = _nrows;
     t._job = _job;
+    t._vaKey = _vaKey;
     t._numRows = _numRows;
     t._scale = _scale;
     t._bases = _bases;
@@ -172,7 +175,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
      */
     public void store() {
       assert _abs.eof():"expected eof, position=" + _abs.position() + ", size=" + _abs._size;
-      Key k = ValueArray.getChunkKey(_chunkIndex, _job.dest());
+      Key k = ValueArray.getChunkKey(_chunkIndex, _vaKey);
       AtomicUnion u = new AtomicUnion(_abs.bufClose(),_chunkOffset);
       alsoBlockFor(u.fork(k));
       _abs = null; // free mem
@@ -262,6 +265,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     _sourceDataset = null;
     _phase = Pass.ONE;
     _parser = null;
+    _vaKey = null;
   }
 
   protected DParseTask makePhase2Clone(FileInfo finfo){
@@ -288,6 +292,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     _colTypes = other._colTypes;
     _nrows = other._nrows;
     _job = other._job;
+    _vaKey = other._vaKey;
     _numRows = other._numRows;
     _scale = other._scale;
     _ncolumns = other._ncolumns;
@@ -312,6 +317,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     DParseTask t = clone2();
     t._sourceDataset = dataset;
     t._job = job;
+    t._vaKey = ValueArray.makeVAKey(job.dest());
     t._phase = Pass.ONE;
     t._parser = parser;
     if(t._parser._setup != null) {
@@ -442,7 +448,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
    * Also stores the header to its appropriate key. This will be the VA header
    * of the parsed dataset.
    */
-  protected ValueArray createValueArrayHeader() {
+  protected void createValueArrayHeader() {
     assert (_phase == Pass.TWO);
     Column[] cols = new Column[_ncolumns];
     int off = 0;
@@ -465,9 +471,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     // let any pending progress reports finish
     DKV.write_barrier();
     // finally make the value array header
-    ValueArray ary = new ValueArray(_job.dest(), _numRows, off, cols);
-    UKV.put(_job.dest(), ary);
-    return ary;
+    new ValueArray(_vaKey, _numRows, off, cols).close(_job.dest(),null);
   }
 
   protected void createEnums() {

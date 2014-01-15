@@ -53,13 +53,13 @@ public class SVMLightDParseTask extends DParseTask {
     super.reduce(dpt);
   }
 
-  @Override public ValueArray createValueArrayHeader(){
+  @Override public void createValueArrayHeader(){
     String [] colNames = new String[_ncolumns];
     colNames[0] = "Target";
     for(int i = 1; i < _ncolumns; ++i)
       colNames[i] = "V" + i;
     _colNames = colNames;
-    return super.createValueArrayHeader();
+    super.createValueArrayHeader();
   }
   @Override protected void createEnums() {} // SVMlight has no strings, we don't need any enums
 }
