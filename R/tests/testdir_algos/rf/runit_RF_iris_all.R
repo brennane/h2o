@@ -5,7 +5,7 @@ test.RF.iris_class <- function(conn) {
   iris.hex <- h2o.uploadFile(conn, locate( "smalldata/iris/iris22.csv"), "iris.hex")
   iris.rf  <- h2o.randomForest(y = 5, x = seq(1,4), data = iris.hex, ntree = 50, depth = 100) 
   print(iris.rf)
-  iris.rf  <- h2o.randomForest(y = 6, x = seq(1,4), data = iris.hex, ntree = 50, depth = 100 )
+  iris.rf  <- h2o.randomForest(y = 6, x = seq(1,4), data = iris.hex, ntree = 50, depth = 100)
   print(iris.rf)
   testEnd()
 }
