@@ -8,8 +8,8 @@ library(h2o)
  remoteH2O = h2o.init(ip = myIP, port = myPort, startH2O = TRUE, silentUpgrade = FALSE, promptUpgrade = TRUE)
 
 #Parsing in the data file
- #air=h2o.importFile(remoteH2O,"hdfs://192.168.1.161/datasets/airlines_all.csv",key="air")
- # air=h2o.importFile.VA(remoteH2O,"/home/0xdiag/datasets/airlines/airlines_all.csv",key="air")
+ #air=h2o.importFile(remoteH2O,"hdfs://192.168.1.161/datasets/airlines_all.csv",key="air", version=2)
+ # air=h2o.importFile(remoteH2O,"/home/0xdiag/datasets/airlines/airlines_all.csv",key="air", version=1)
  air=h2o.importFile(remoteH2O,"/home/0xdiag/datasets/airlines/airlines_all.csv",key="air")
 
  dim(air)
@@ -98,14 +98,14 @@ library(h2o)
  #Running GLM
  myX = c("Origin", "Dest", "Distance", "UniqueCarrier", "Month", "DayofMonth", "DayOfWeek", "CRSElapsedTime")
  myY="IsDepDelayed"
- air.glm = h2o.glm.FV(x = myX, y = "IsDepDelayed", data = air, family = "binomial", nfolds = 1, alpha = 0.25,lambda=0.001)
+ air.glm = h2o.glm(x = myX, y = "IsDepDelayed", data = air, family = "binomial", nfolds = 1, alpha = 0.25,lambda=0.001, version=2)
  air.glm
  sort(air.glm@model$coefficients)
  air.glm@model$confusion
  
  #RF
- airVA=h2o.importFile.VA(remoteH2O,"/home/0xdiag/datasets/airlines/airlines_all.csv",key="airVA")
- rr=h2o.randomForest.VA(x=myX,y=myY,data=airVA)
+ airVA=h2o.importFile(remoteH2O,"/home/0xdiag/datasets/airlines/airlines_all.csv",key="airVA")
+ rr=h2o.randomForest(x=myX,y=myY,data=airVA)
 #rr=h2o.randomForest(x=myX,y=myY,data=air)
 
 #Factor Stuff

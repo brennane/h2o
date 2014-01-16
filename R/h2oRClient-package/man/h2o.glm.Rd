@@ -36,7 +36,6 @@ The elastic-net mixing parameter, which must be in [0,1]. The penalty is defined
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
-IMPORTANT: Currently, to run GLM you must import files to a ValueArray object using \code{\link{h2o.importFile.VA}}, \code{\link{h2o.importFolder.VA}} or one of its variants.
 }
 \value{
 An object of class \code{\linkS4class{H2OGLMModel}} with slots key, data, model and xval. The slot model is a list of the following components:
@@ -76,14 +75,14 @@ The slot xval is a list of \code{\linkS4class{H2OGLMModel}} objects representing
 
 \seealso{
 %% ~~objects to See Also as \code{\link{help}}, ~~~
-\code{\link{h2o.importFile.VA}}, \code{\link{h2o.importFolder.VA}}, \code{\link{h2o.importHDFS.VA}}, \code{\link{h2o.importURL.VA}}, \code{\link{h2o.uploadFile.VA}}
+\code{\link{h2o.importFile}}, \code{\link{h2o.importFolder}}, \code{\link{h2o.importHDFS}}, \code{\link{h2o.importURL}}, \code{\link{h2o.uploadFile}}
 }
 \examples{
 library(h2o)
 localH2O = h2o.init(ip = "localhost", port = 54321, startH2O = TRUE, silentUpgrade = TRUE, 
 + promptUpgrade = FALSE)
 # Run GLM of CAPSULE ~ AGE + RACE + PSA + DCAPS
-prostate.hex = h2o.importURL.VA(localH2O, path = "https://raw.github.com/0xdata/h2o/master/
+prostate.hex = h2o.importURL(localH2O, path = "https://raw.github.com/0xdata/h2o/master/
 + smalldata/logreg/prostate.csv", key = "prostate.hex")
 h2o.glm(y = "CAPSULE", x = c("AGE","RACE","PSA","DCAPS"), data = prostate.hex, family = 
  + "binomial", nfolds = 10, alpha = 0.5)
@@ -93,7 +92,7 @@ h2o.glm(y = "VOL", x = myX, data = prostate.hex, family = "gaussian", nfolds = 5
 + alpha = 0.1)
 
 # Run GLM of IsDepDelayed ~ Distance + Origin + Dest + UniqueCarrier on airlines dataset in HDFS
-airlines.hex =  h2o.importURL.VA(localH2O, path = "https://raw.github.com/0xdata/h2o/master/smalldata/airlines/AirlinesTrain.csv.zip")
+airlines.hex =  h2o.importURL(localH2O, path = "https://raw.github.com/0xdata/h2o/master/smalldata/airlines/AirlinesTrain.csv.zip")
 h2o.glm(x = c('Distance', 'Origin', 'Dest', 'UniqueCarrier'), 
  + y = 'IsDepDelayed', family = 'binomial', data = airlines.hex)
 }
