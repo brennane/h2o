@@ -1,15 +1,16 @@
 package water;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import water.H2O.H2OCountedCompleter;
 import water.Job.ProgressMonitor;
 import water.fvec.*;
 import water.util.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
 * Large Arrays & Arraylets
