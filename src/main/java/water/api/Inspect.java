@@ -17,7 +17,6 @@ import java.util.HashMap;
 import water.*;
 import water.ValueArray.Column;
 import water.api.GLMProgressPage.GLMBuilder;
-import water.api.RequestBuilders.Response;
 import water.fvec.Frame;
 import water.fvec.Vec;
 import water.parser.CustomParser.PSetupGuess;
@@ -170,7 +169,7 @@ public class Inspect extends Request {
   }
 
   // Build a response JSON
-  private final Response serveUnparsedValue(Key key, Value v) {
+  private Response serveUnparsedValue(Key key, Value v) {
     JsonObject result = new JsonObject();
     result.addProperty(VALUE_TYPE, "unparsed");
     byte [] bits = v.getFirstBytes();
@@ -267,7 +266,7 @@ public class Inspect extends Request {
     r.setBuilder(ROOT_OBJECT, new ObjectBuilder() {
       @Override
       public String build(Response response, JsonObject object, String contextName) {
-        String s = html(va._key, va._numrows, va._cols.length, va._rowsize, va.length());
+        String s = html(ValueArray.makeFRKey(va._key), va._numrows, va._cols.length, va._rowsize, va.length());
         Table t = new Table(argumentsToJson(), _offset.value(), _view.value(), va, col_limit);
         s += t.build(response, object.get(ROWS), ROWS);
         return s;
@@ -313,7 +312,7 @@ public class Inspect extends Request {
     else obj.addProperty(name, v.at(rowIdx));
   }
 
-  private final String html(Key key, long rows, int cols, int bytesPerRow, long bytes) {
+  private String html(Key key, long rows, int cols, int bytesPerRow, long bytes) {
     String keyParam = KEY + "=" + key.toString();
     StringBuilder sb = new StringBuilder();
     // @formatter:off

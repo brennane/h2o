@@ -57,6 +57,7 @@ public class RFView extends /* Progress */ Request {
   }
 
   public static Response redirect(JsonObject fromPageResponse, Key jobKey, Key modelKey, Key dataKey, int ntree, int classCol, String weights, boolean oobee, boolean iterativeCM) {
+    assert dataKey.user_allowed();
     JsonObject redirect = new JsonObject();
     if (jobKey!=null) redirect.addProperty(JOB, jobKey.toString());
     redirect.addProperty(MODEL_KEY, modelKey.toString());
@@ -75,10 +76,11 @@ public class RFView extends /* Progress */ Request {
   public static Response redirect(JsonObject fromPageResponse, Key rfModelKey) {
     RFModel rfModel = DKV.get(rfModelKey).get();
     ValueArray data = DKV.get(rfModel._dataKey).get();
-    return redirect(fromPageResponse, null, rfModelKey, rfModel._dataKey, rfModel._totalTrees, data.numCols()-1, null, true, false );
+    return redirect(fromPageResponse, null, rfModelKey, rfModel._frKey, rfModel._totalTrees, data.numCols()-1, null, true, false );
   }
 
   public static Response redirect(JsonObject fromPageResponse, Key rfModel, Key dataKey, boolean oobee) {
+    assert dataKey.user_allowed();
     JsonObject redir = new JsonObject();
     redir.addProperty(MODEL_KEY, rfModel.toString());
     redir.addProperty(DATA_KEY, dataKey.toString());
@@ -87,10 +89,12 @@ public class RFView extends /* Progress */ Request {
   }
 
   public static String link(Key k, String content) {
+    assert k.user_allowed();
     return link(k, DATA_KEY, content);
   }
 
   public static String link(Key k, String keyParam, String content) {
+    assert k.user_allowed();
     RString rs = new RString("<a href='RFView.query?%key_param=%$key'>%content</a>");
     rs.replace("key_param", keyParam);
     rs.replace("key", k.toString());
@@ -230,8 +234,8 @@ public class RFView extends /* Progress */ Request {
         stats(sb, t.get(TREE_LEAVES)).append(".<br>");
         for( int i = 0; i < n; ++i ) {
           sb.append(RFTreeView.link(_modelKey.value(), i,
-              _dataKey.value(),
-              Integer.toString(i+1))).append(" ");
+                                    Key.make(_dataKey.originalValue()),
+                                    Integer.toString(i+1))).append(" ");
         }
       } else {
         sb.append("<h3>No trees yet...</h3>");

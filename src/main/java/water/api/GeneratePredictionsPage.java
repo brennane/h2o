@@ -32,14 +32,14 @@ public class GeneratePredictionsPage extends Request {
     return rs.toString();
   }
 
-
   @Override protected Response serve() {
     try {
       JsonObject res = new JsonObject();
       ValueArray ary = _dataKey.value();
       OldModel m = (OldModel)_modelKey.value();
-      Key dest = _dest.value();
-      return Inspect.redirect(res, ScoreTask.score(m, ary, dest));
+      Key frDest = _dest.value();
+      Key vaDest = ValueArray.makeVAKey(frDest);
+      return Inspect.redirect(res, ScoreTask.score(m, ary, vaDest));
     }catch(GLMException e){
       Log.err(e);
       return Response.error(e.getMessage());
