@@ -62,6 +62,7 @@ public class GLMGrid extends Request {
   protected final RSeq _alpha = new RSeq(Constants.ALPHA, false, new NumberSequence("0,0.25,0.5,0.75,1.0",false,1),false);
   protected final RSeq _thresholds = new RSeq(Constants.DTHRESHOLDS, false, new NumberSequence("0:1:0.01",false,0.1),false);
 
+  protected final Bool _standardize = new Bool("standardize", true, "Set to standardize (0 mean, unit variance) the data before training.");
   protected final Bool _parallel = new Bool(PARALLEL, true, "Build models in parallel");
   protected final Int _parallelism = new Int(JSON_PARALLELISM, 1, 1, 256);
 
@@ -130,7 +131,8 @@ public class GLMGrid extends Request {
                         ts,
                         _xval.value(),
                         _parallel.value(),
-                        _parallelism.value());
+                        _parallelism.value(),
+                        _standardize.value());
     job.start();
 
     // Redirect to the grid-search status page
