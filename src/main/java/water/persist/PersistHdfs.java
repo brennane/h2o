@@ -31,7 +31,7 @@ public final class PersistHdfs extends Persist {
 
   // Returns String with path for given key.
   private static String getPathForKey(Key k) {
-    final int off = k._kb[0]==Key.DVEC ? Vec.KEY_PREFIX_LEN : 0;
+    final int off = k._kb[0]==Key.DVEC  || k._kb[0]== Key.BUILT_IN_KEY ? Vec.KEY_PREFIX_LEN : 0;
     return new String(k._kb,off,k._kb.length-off);
   }
 

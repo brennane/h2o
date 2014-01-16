@@ -15,10 +15,10 @@ public class SummaryTest extends TestUtil {
   @Test public void testConstSummary() {
     Key vkey = loadAndParseFile("con.hex","./smalldata/constantColumn.csv");
 //    Key vkey = loadAndParseFile("enum_test.hex","./smalldata/test/test_percentiles_distns.csv");
-    ValueArray ary = UKV.get(vkey);
+    ValueArray ary = ValueArray.get(vkey);
     int[] cols = new int[ary.numCols()];
     for( int i=0; i<cols.length; i++ ) cols[i]=i;
-    Summary sum = new ColSummaryTask(ary,cols).invoke(vkey).result();
+    Summary sum = new ColSummaryTask(ary,cols).invoke(ary._key).result();
     for( int i=0; i<cols.length; i++ ) {
       sum._sums[i].toJson();
     }
@@ -35,7 +35,7 @@ public class SummaryTest extends TestUtil {
   @Test public void testNonConstSummary(){
     Key vkey = loadAndParseFile("enum_test.hex","./smalldata/test/test_percentiles_distns.csv.gz");
     try {
-      ValueArray array = UKV.get(vkey);
+      ValueArray array = ValueArray.get(vkey);
       int[] cols = new int[ 2 ];
 
       // search for columns zeroone and zerotwo
@@ -52,7 +52,7 @@ public class SummaryTest extends TestUtil {
       }
       assertEquals("found columns zeroone and zerotwo", 2, found_count);
 
-      Summary sum = new ColSummaryTask(array,cols).invoke(vkey).result();
+      Summary sum = new ColSummaryTask(array,cols).invoke(array._key).result();
       for( int i=0; i<cols.length; i++ ) {
         sum._sums[i]._summary = sum;
         sum._sums[i].toJson();
@@ -83,7 +83,7 @@ public class SummaryTest extends TestUtil {
   @Test public void testEnumSummary(){
     Key vkey = loadAndParseFile("enum_test.hex","./smalldata/test/test_percentiles_distns.csv.gz");
     try {
-      ValueArray array = UKV.get(vkey);
+      ValueArray array = ValueArray.get(vkey);
       int[] cols = new int[ 2 ];
 
       // search for columns zerooneF and zerotwoF
@@ -102,7 +102,7 @@ public class SummaryTest extends TestUtil {
       }
       assertEquals("found columns zerooneF and zerotwoF", 2, found_count);
 
-      Summary sum = new ColSummaryTask(array,cols).invoke(vkey).result();
+      Summary sum = new ColSummaryTask(array,cols).invoke(array._key).result();
       for( int i=0; i<cols.length; i++ ) {
         sum._sums[i]._summary = sum;
         sum._sums[i].toJson();

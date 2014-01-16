@@ -124,7 +124,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
 
   private static final class VAChunkDataIn implements CustomParser.DataIn {
     final Key _key;
-    public VAChunkDataIn(Key k) {_key = k;}
+    public VAChunkDataIn(Key k) { _key = k; }
     // Fetch chunk data on demand
     public byte[] getChunkData( int cidx ) {
       Key key = _key;

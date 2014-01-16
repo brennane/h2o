@@ -17,7 +17,7 @@ public class RandomForestTest extends TestUtil {
     Key okey = loadAndParseFile("credit.hex", "smalldata/kaggle/creditsample-training.csv.gz");
     UKV.remove(Key.make("smalldata/kaggle/creditsample-training.csv.gz_UNZIPPED"));
     UKV.remove(Key.make("smalldata\\kaggle\\creditsample-training.csv.gz_UNZIPPED"));
-    ValueArray val = DKV.get(okey).get();
+    ValueArray val = ValueArray.get(okey);
 
     // Check parsed dataset
     final int n = new int[]{4,2,1}[ValueArray.LOG_CHK-20];
@@ -52,7 +52,7 @@ public class RandomForestTest extends TestUtil {
     //Key okey = loadAndParseFile("covtype.hex", "../datasets/UCI/UCI-large/covtype/covtype.data");
     //Key okey = loadAndParseFile("covtype.hex", "/home/0xdiag/datasets/standard/covtype.data");
     //Key okey = loadAndParseFile("mnist.hex", "/home/0xdiag/datasets/mnist/mnist8m.csv");
-    ValueArray val = UKV.get(okey);
+    ValueArray val = ValueArray.get(okey);
 
     // setup default values for DRF
     int ntrees  = 8;

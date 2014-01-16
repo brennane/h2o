@@ -117,7 +117,7 @@ public class KVTest extends TestUtil {
     File file = find_test_file("target/h2o.jar");
     Key h2okey = load_test_file(file);
     ByteHisto bh = new ByteHisto();
-    bh.invoke(h2okey);
+    bh.invoke(ValueArray.makeVAKey(h2okey));
     int sum=0;
     for( int i=0; i<bh._x.length; i++ )
       sum += bh._x[i];
@@ -194,7 +194,7 @@ public class KVTest extends TestUtil {
     Key okey = Key.make("cars.hex");
     ParseDataset.parse(okey,new Key[]{fkey});
     UKV.remove(fkey);
-    ValueArray va = DKV.get(okey).get();
+    ValueArray va = ValueArray.get(okey);
     // Compute LinearRegression between columns 2 & 3
     JsonObject res = LinearRegression.run(va,2,3);
     assertEquals( 58.326241377521995, res.get("Beta1"      ).getAsDouble(), 0.000001);

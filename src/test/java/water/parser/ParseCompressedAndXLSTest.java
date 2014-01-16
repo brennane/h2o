@@ -15,10 +15,10 @@ public class ParseCompressedAndXLSTest extends TestUtil {
       k2 = loadAndParseFile("xls.hex","smalldata/iris/iris.xls");
       k3 = loadAndParseFile("gzip.hex","smalldata/iris/iris_wheader.csv.gz");
       k4 = loadAndParseFile("zip.hex","smalldata/iris/iris_wheader.csv.zip");
-      Value v1 = DKV.get(k1);
-      Value v2 = DKV.get(k2);
-      Value v3 = DKV.get(k3);
-      Value v4 = DKV.get(k4);
+      Value v1 = DKV.get(ValueArray.makeVAKey(k1));
+      Value v2 = DKV.get(ValueArray.makeVAKey(k2));
+      Value v3 = DKV.get(ValueArray.makeVAKey(k3));
+      Value v4 = DKV.get(ValueArray.makeVAKey(k4));
       assertTrue(v1.isBitIdentical(v2));
       assertTrue(v2.isBitIdentical(v3));
       assertTrue(v3.isBitIdentical(v4));

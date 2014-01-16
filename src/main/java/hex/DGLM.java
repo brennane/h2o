@@ -953,7 +953,7 @@ public abstract class DGLM {
      */
     public int[] selectedColumns() {
       if( DKV.get(_dataKey) == null ) return null;
-      ValueArray ary = DKV.get(_dataKey).get();
+      ValueArray ary = ValueArray.get(_dataKey);
       HashSet<String> colNames = new HashSet<String>();
       for( int i = 0; i < _va._cols.length - 1; ++i )
         colNames.add(_va._cols[i]._name);

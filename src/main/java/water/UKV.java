@@ -48,6 +48,8 @@ public abstract class UKV {
   }
   // Recursively remove, gathering all the pending remote key-deletes
   static public void remove( Key key, Futures fs ) {
+    if( key.user_allowed() )  // Also remove any shadow VA key
+      remove(ValueArray.makeVAKey(key),fs);
     Value val = DKV.get(key,32,H2O.GET_KEY_PRIORITY); // Get the existing Value, if any
     if( val == null ) return;   // Trivial delete
     if( val.isArray() ) {       // See if this is an Array

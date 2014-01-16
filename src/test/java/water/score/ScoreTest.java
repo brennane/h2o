@@ -36,7 +36,7 @@ public class ScoreTest extends TestUtil {
     RFScoreModel rfm = (RFScoreModel)PMMLParser.parse(new BufferedInputStream(new FileInputStream(file)));
   
     Key irisk = loadAndParseFile("iris.hex","smalldata/iris/iris2.csv");
-    ValueArray ary = DKV.get(irisk).get();
+    ValueArray ary = ValueArray.get(irisk);
     AutoBuffer bits = ary.getChunk(0);
     int rows = ary.rpc(0);
     int errs = 0;

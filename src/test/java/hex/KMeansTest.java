@@ -116,7 +116,7 @@ public class KMeansTest extends TestUtil {
   @Test public void testAirline() {
     Key k1 = loadAndParseFile("h.hex", "smalldata/airlines/allyears2k.zip");
     Key target = Key.make("air.kmeans");
-    ValueArray va = UKV.get(k1);
+    ValueArray va = ValueArray.get(k1);
     Timer t = new Timer();
     KMeans.start(target, va, 8, Initialization.Furthest, 100, SEED, false, 0).get();
     Log.debug(Sys.KMEAN, "ms= " + t);
@@ -129,7 +129,7 @@ public class KMeansTest extends TestUtil {
   @Test public void testSphere() {
     Key k1 = loadAndParseFile("syn_sphere3.hex", "smalldata/syn_sphere3.csv");
     Key target = Key.make(KMeans.KEY_PREFIX + "sphere");
-    ValueArray va = UKV.get(k1);
+    ValueArray va = ValueArray.get(k1);
     KMeans.start(target, va, 3, Initialization.Furthest, 100, SEED, false, 0, 1, 2).get();
     KMeansModel res = UKV.get(target);
     res.clusters();

@@ -352,10 +352,9 @@ public class ValueArray extends Iced implements Cloneable {
   }
   public static Key getChunkKey( long chknum, Key arrayKey ) {
     assert arrayKey.type() == Key.BUILT_IN_KEY;
-    assert 0 <= chknum && chknum < Integer.MAX_VALUE;
     byte[] buf = arrayKey._kb.clone();
     buf[0] = Key.ARRAYLET_CHUNK;
-    UDP.set4(buf,1+1,(int)chknum);
+    UDP.set8(buf,1+1,chknum);
     return Key.make(buf,(byte)arrayKey.desired());
   }
 
@@ -363,13 +362,16 @@ public class ValueArray extends Iced implements Cloneable {
   public static Key getArrayKey( Key k ) { return Key.make(getArrayKeyBytes(k)); }
   public static byte[] getArrayKeyBytes( Key k ) {
     assert k._kb[0] == Key.ARRAYLET_CHUNK;
-    return Arrays.copyOfRange(k._kb,2+4,k._kb.length);
+    byte[] buf = k._kb.clone();
+    buf[0] = Key.BUILT_IN_KEY;
+    UDP.set8(buf,1+1,-1);
+    return buf;
   }
 
   /** Get the chunk-index from a random arraylet sub-key */
   public static long getChunkIndex(Key k) {
     assert k._kb[0] == Key.ARRAYLET_CHUNK;
-    return UDP.get4(k._kb, 2);
+    return UDP.get8(k._kb, 2);
   }
   public static long getChunkOffset(Key k) { return getChunkIndex(k)<<LOG_CHK; }
 
@@ -393,7 +395,6 @@ public class ValueArray extends Iced implements Cloneable {
     assert frKey.user_allowed();
     Key vaKey = makeVAKey(frKey);
     UKV.remove(frKey);
-    UKV.remove(vaKey);
     byte[] oldbuf, buf = null;
     int off = 0, sz = 0;
     long szl = off;
@@ -543,11 +544,34 @@ public class ValueArray extends Iced implements Cloneable {
   // and make the shadow VA key.
   static public Key makeVAKey( Key frKey ) {
     assert frKey.user_allowed();
-    return Key.make(frKey.toString(),Key.DEFAULT_DESIRED_REPLICA_FACTOR,Key.BUILT_IN_KEY);
+    return makeVAKey(frKey.toString());
   }
-  
-  static ValueArray get( Key frKey ) {
-    return UKV.get(makeVAKey(frKey));
+  static public Key makeVAKey( String sfrKey ) {
+    return Key.make(sfrKey,Key.DEFAULT_DESIRED_REPLICA_FACTOR,Key.BUILT_IN_KEY);
+  }
+  static public Key makeFRKey( Key vaKey ) {
+    assert vaKey.type()==Key.BUILT_IN_KEY;
+    return Key.make(Arrays.copyOfRange(vaKey._kb,Vec.KEY_PREFIX_LEN,vaKey._kb.length));
+  }
+
+  // Get a VA from the shadow key of a Frame Key, if it exists.
+  // If not, but the Frame exists - then convert & cache a shadow VA
+  // Conversion number is only for logging.
+  final static AtomicInteger conversionNumber = new AtomicInteger(0);
+  static public ValueArray get( Key frKey ) {
+    Key vaKey = makeVAKey(frKey);
+    ValueArray ary = UKV.get(vaKey);
+    if( ary != null ) return ary;
+    Frame fr = UKV.get(frKey);
+    if( fr == null ) return null;
+    synchronized( ValueArray.class ) {
+      ary = UKV.get(vaKey);     // Check cache again under lock
+      if( ary != null ) return ary;
+      int cn = conversionNumber.getAndIncrement();
+      Log.info("Converting Frame to ValueArray: node(" + H2O.SELF + ") convNum(" + cn + ") key(" + frKey + ")...");
+      ary = convert(fr,vaKey);
+    }
+    return ary;
   }
 
   public Futures close(Key frKey, Futures fs) {
@@ -631,7 +655,8 @@ public class ValueArray extends Iced implements Cloneable {
   }
 
   // Convert a Frame to a VA
-  private static ValueArray convert( Frame fr, Key vaKey ) {
+  private static ValueArray convert( Frame fr, final Key vaKey ) {
+    assert !vaKey.user_allowed();
     long nrows = fr.numRows();
     Vec vs[] = fr.vecs();
 
@@ -685,7 +710,7 @@ public class ValueArray extends Iced implements Cloneable {
             }
           }
         assert off == buf.length;
-        Value val = new Value(va.getChunkKey(_lo),buf);
+        Value val = new Value(ValueArray.getChunkKey(_lo,vaKey),buf);
         DKV.put(val._key,val,_fs);
       }
       @Override public void closeLocal() { _fs.blockForPending(); }

@@ -132,7 +132,7 @@ public class FVecTest extends TestUtil {
     Key vkey = Key.make("pro2.hex");
     ParseDataset.parse(vkey, new Key[]{rkey});
     UKV.remove(rkey);
-    ValueArray ary = UKV.get(vkey);
+    ValueArray ary = ValueArray.get(vkey);
     assertEquals(ary.numRows(),fr.vecs()[0].length());
 
     try {
@@ -156,7 +156,7 @@ public class FVecTest extends TestUtil {
 
     } finally {
       UKV.remove(dest);
-      UKV.remove(ary._key);
+      UKV.remove(vkey);
     }
   }
 
