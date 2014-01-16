@@ -185,6 +185,7 @@ public class KMeansModel extends OldModel implements Progress {
     int _cols[];            // IN:  Cols->Features mapping
     double _clusters[][];   // IN:  The (normalized) Clusters
     boolean _normalized;    // IN
+    Key _newVAKey;          // TEMP
 
     static final int ROW_SIZE = 4;
 
@@ -199,6 +200,7 @@ public class KMeansModel extends OldModel implements Progress {
           kms._cols = model.columnMapping(ary.colNames());
           kms._clusters = model._clusters;
           kms._normalized = model._normalized;
+          kms._newVAKey = ValueArray.makeVAKey(dest);
           kms.invoke(ary._key);
 
           Column c = new Column();
@@ -211,9 +213,8 @@ public class KMeansModel extends OldModel implements Progress {
           c._sigma = Double.NaN;
           c._domain = null;
           c._n = ary.numRows();
-          ValueArray res = new ValueArray(dest, ary.numRows(), c._size, new Column[] { c });
-          DKV.put(dest, res);
-          DKV.write_barrier();
+          ValueArray res = new ValueArray(kms._newVAKey, ary.numRows(), c._size, new Column[] { c });
+          res.close(dest,null); // Make the Frame version also
           job.remove();
           tryComplete();
         }
@@ -274,7 +275,7 @@ public class KMeansModel extends OldModel implements Progress {
 
     private void updateClusters(int[] clusters, int count, long chunk, long numrows, int rpc, long updatedRow) {
       final int offset = (int) (updatedRow - (rpc * chunk));
-      final Key chunkKey = ValueArray.getChunkKey(chunk, _job.dest());
+      final Key chunkKey = ValueArray.getChunkKey(chunk, _newVAKey);
       final int[] message;
       if( count == clusters.length )
         message = clusters;
