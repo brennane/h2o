@@ -2,7 +2,6 @@ MAX_INSPECT_VIEW = 10000
 
 # Class definitions
 # WARNING: Do NOT touch the env slot! It is used to link garbage collection between R and H2O
-# setClass("H2OClient", representation(ip="character", port="numeric"), prototype(ip="127.0.0.1", port=54321))
 setClass("H2OClient", representation(ip="character", port="numeric"), prototype(ip="127.0.0.1", port=54321))
 setClass("H2ORawData", representation(h2o="H2OClient", key="character", env="environment"))
 # setClass("H2OParsedData", representation(h2o="H2OClient", key="character"))
@@ -24,13 +23,9 @@ setClass("H2OKMeansGrid", contains="H2OGrid")
 setClass("H2ODRFGrid", contains="H2OGrid")
 setClass("H2ONNGrid", contains="H2OGrid")
 
-setClass("H2ORawDataVA", representation(h2o="H2OClient", key="character", env="environment"))
-setClass("H2OParsedDataVA", representation(h2o="H2OClient", key="character", env="environment"))
-setClass("H2OModelVA", representation(key="character", data="H2OParsedDataVA", model="list", env="environment", "VIRTUAL"))
-setClass("H2OGridVA", representation(key="character", data="H2OParsedDataVA", model="list", sumtable="list", "VIRTUAL"))
-setClass("H2OGLMModelVA", contains="H2OModelVA", representation(xval="list"))
-setClass("H2OGLMGridVA", contains="H2OGridVA")
-setClass("H2ORFModelVA", contains="H2OModelVA")
+setClass("H2OGLMModelVA", contains="H2OModel", representation(xval="list"))
+setClass("H2OGLMGridVA", contains="H2OGrid")
+setClass("H2ORFModelVA", contains="H2OModel")
 
 # Register finalizers for H2O data and model objects
 # setMethod("initialize", "H2ORawData", function(.Object, h2o = new("H2OClient"), key = "") {
@@ -434,7 +429,6 @@ setMethod("colnames", "H2OParsedData", function(x) {
   res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT2, src_key=x@key)
   unlist(lapply(res$cols, function(y) y$name))
 })
-setMethod("colnames<-", "H2OParsedData", function(x, value) { stop("Unimplemented") })
 
 setMethod("names", "H2OParsedData", function(x) { colnames(x) })
 setMethod("names<-", "H2OParsedData", function(x, value) { names(x) <- value })
