@@ -4,6 +4,7 @@ import hex.rf.RFModel;
 import hex.rf.Tree;
 import water.AutoBuffer;
 import water.ValueArray;
+import water.Key;
 import water.util.RString;
 import water.util.TreeRenderer;
 
@@ -15,7 +16,7 @@ public class RFTreeView extends Request {
   protected final Int        _tree     = new Int(TREE_NUM, 0);
   protected final H2OHexKey  _dataKey  = new H2OHexKey(DATA_KEY);
 
-  public static String link(RFModel model, int tree, ValueArray va, String body) {
+  public static String link(RFModel model, int tree, Key frKey, String body) {
     RString rs = new RString("<a href='/RFTreeView.html?" +
         "%modelKey=%$modelVal" +
         "&%treeKey=%treeVal" +
@@ -25,7 +26,7 @@ public class RFTreeView extends Request {
     rs.replace("treeKey", TREE_NUM);
     rs.replace("treeVal", tree);
     rs.replace("vaKey", DATA_KEY);
-    rs.replace("vaVal", va._key.toString());
+    rs.replace("vaVal", frKey.toString());
     rs.replace("body", body);
     return rs.toString();
   }

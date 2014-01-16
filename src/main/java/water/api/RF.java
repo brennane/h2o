@@ -37,6 +37,7 @@ public class RF extends Request {
 
   /** Return the query link to this page */
   public static String link(Key k, String content) {
+    assert k.user_allowed();
     RString rs = new RString("<a href='RF.query?%key_param=%$key'>%content</a>");
     rs.replace("key_param", DATA_KEY);
     rs.replace("key", k.toString());
@@ -88,6 +89,8 @@ public class RF extends Request {
    */
   @Override public Response serve() {
     ValueArray ary = _dataKey.value();
+    Key dataKey = ary._key;
+    Key frKey = Key.make(_dataKey.originalValue());
     int classCol = _classCol.value();
     int ntree = _numTrees.value();
 
@@ -103,7 +106,6 @@ public class RF extends Request {
     cols[idx++] = classCol;     // Class column last
     assert idx==cols.length;
 
-    Key dataKey = ary._key;
     Key modelKey = _modelKey.value()!=null ? _modelKey.value() : RFModel.makeKey();
     UKV.remove(modelKey);       // Remove any prior model first
     for (int i = 0; i < ntree; ++i) {
@@ -140,12 +142,12 @@ public class RF extends Request {
               );
       // Collect parameters required for validation.
       JsonObject response = new JsonObject();
-      response.addProperty(DATA_KEY, dataKey.toString());
+      response.addProperty(DATA_KEY, frKey.toString());
       response.addProperty(MODEL_KEY, drfJob.dest().toString());
       response.addProperty(DEST_KEY, drfJob.dest().toString());
       response.addProperty(NUM_TREES, ntree);
       response.addProperty(CLASS, classCol);
-      Response r = RFView.redirect(response, drfJob.self(), drfJob.dest(), dataKey, ntree, classCol, _weights.originalValue(), _oobee.value(), _iterativeCM.value());
+      Response r = RFView.redirect(response, drfJob.self(), drfJob.dest(), frKey, ntree, classCol, _weights.originalValue(), _oobee.value(), _iterativeCM.value());
       r.setBuilder(DEST_KEY, new KeyElementBuilder());
       return r;
     } catch (IllegalArgumentException e) {
