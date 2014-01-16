@@ -24,7 +24,7 @@ public class DatasetCornerCasesTest extends TestUtil {
     Key okey = Key.make("HTWO-87-two-lines-dataset.hex");
     ParseDataset.parse(okey,new Key[]{fkey});
     UKV.remove(fkey);
-    ValueArray val = DKV.get(okey).get();
+    ValueArray val = ValueArray.get(okey);
 
     // Check parsed dataset
     assertEquals("Number of chunks == 1", 1, val.chunks());
@@ -88,7 +88,7 @@ public class DatasetCornerCasesTest extends TestUtil {
     Key okey = Key.make(keyname);
     ParseDataset.parse(okey,new Key[]{fkey});
 
-    ValueArray val = DKV.get(okey).get();
+    ValueArray val = ValueArray.get(okey);
     assertEquals(filename + ": number of chunks == 1", 1, val.chunks());
     assertEquals(filename + ": number of rows   == 2", 2, val._numrows);
     assertEquals(filename + ": number of cols   == 9", 9, val._cols.length);

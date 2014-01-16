@@ -6,9 +6,11 @@ import hex.DLSM.ADMMSolver;
 import hex.DLSM.GeneralizedGradientSolver;
 import hex.DLSM.LSMSolver;
 import hex.NewRowVecTask.DataFrame;
-import java.util.*;
-import org.junit.*;
+import java.util.Random;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import water.*;
+import water.exec.Exec2;
 import water.api.Constants;
 
 import com.google.gson.*;
@@ -18,7 +20,7 @@ import com.google.gson.*;
 // tests are also good).
 
 public class GLMTest extends TestUtil {
-  @BeforeClass public static void stall() { stall_till_cloudsize(1); }
+  @BeforeClass public static void stall() { stall_till_cloudsize(3); }
 
   static double[] THRESHOLDS;
   static {
@@ -162,7 +164,7 @@ public class GLMTest extends TestUtil {
   @Test public void testCars(){
     Key k = loadAndParseFile("h.hex","smalldata/cars.csv");
     try{
-      ValueArray ary = DKV.get(k).get();
+      ValueArray ary = ValueArray.get(k);
       // PREDICT POWER
       String [] cfs1 = new String[]{"Intercept","economy (mpg)", "cylinders", "displacement (cc)", "weight (lb)", "0-60 mph (s)", "year"};
       int [] cols = ary.getColumnIds(new String[]{"economy (mpg)", "cylinders", "displacement (cc)", "weight (lb)", "0-60 mph (s)", "year", "power (hp)"});
@@ -198,7 +200,7 @@ public class GLMTest extends TestUtil {
   @Test public void testProstate(){
     Key k = loadAndParseFile("h.hex","smalldata/glm_test/prostate_cat_replaced.csv");
     try{
-      ValueArray ary = DKV.get(k).get();
+      ValueArray ary = ValueArray.get(k);
       // R results
       //(Intercept)       AGE       RACER2       RACER3        DPROS        DCAPS          PSA          VOL      GLEASON
       // -8.14867     -0.01368      0.32337     -0.38028      0.55964      0.49548      0.02794     -0.01104      0.97704
@@ -222,7 +224,7 @@ public class GLMTest extends TestUtil {
   @Test public void testCredit(){
     Key k = loadAndParseFile("h.hex","smalldata/kaggle/creditsample-test.csv.gz");
     try{
-      ValueArray ary = DKV.get(k).get();
+      ValueArray ary = ValueArray.get(k);
     } finally {
       UKV.remove(k);
     }
@@ -234,7 +236,7 @@ public class GLMTest extends TestUtil {
   @Test public void testPoissonTst1(){
     Key k = loadAndParseFile("h.hex","smalldata/glm_test/poisson_tst1.csv");
     try{
-      ValueArray ary = DKV.get(k).get();
+      ValueArray ary = ValueArray.get(k);
       String [] colnames = new String [] {"prog","math","num_awards"};
       String [] coefs    = new String [] {"Intercept","prog.General","prog.Vocational","math"};
       double [] vals     = new double [] {-4.1627,      -1.08386,       -0.71405,        0.07015 };
@@ -414,17 +416,15 @@ public class GLMTest extends TestUtil {
 
 
   // Predict whether or not a car has a 3-cylinder engine
-  // Currently broken, as Exec1 has been removed and Exec2 only produces Vecs
-  // not VAs.  An alternative would be to select "case==3".
-  /*@Test*/ public void testLogReg_CARS_CSV() {
-    Key k1=null,k2=null;
+  @Test public void testLogReg_CARS_CSV() {
+    Key k1=null;
     try {
       k1 = loadAndParseFile("h.hex","smalldata/cars.csv");
       // Fold the cylinders down to 1/0 for 3/not-3
-      //k2 = Exec2.exec("h.hex[,3]=(h.hex[,3]==3)","h2.hex");
+      Exec2.exec("h.hex[,3]=(h.hex[,3]==3)");
       // Columns for displacement, power, weight, 0-60, year, then response is cylinders
       int[] cols= new int[]{3,4,5,6,7,2};
-      ValueArray va = DKV.get(k1).get();
+      ValueArray va = ValueArray.get(k1);
       // Compute the coefficients
       LSMSolver lsmsx = new ADMMSolver(0,0.0);
       JsonObject glm = computeGLM( Family.binomial, lsmsx, va, cols );
@@ -456,8 +456,7 @@ public class GLMTest extends TestUtil {
       UKV.remove(Key.make(glm.get(Constants.MODEL_KEY).getAsString()));
 
     } finally {
-      UKV.remove(k1);
-      if( k2 != null ) UKV.remove(k2);
+      if( k1 != null ) UKV.remove(k1);
     }
   }
 
@@ -465,7 +464,7 @@ public class GLMTest extends TestUtil {
   // with every iteration until we hit Infinities.
   @Test public void testConverge() {
     Key k1= loadAndParseFile("m.hex","smalldata/logreg/make_me_converge_10000x5.csv");
-    ValueArray va = DKV.get(k1).get();
+    ValueArray va = ValueArray.get(k1);
     // Compute the coefficients
     LSMSolver lsmsx = new ADMMSolver(1e-5, 0.5);
     JsonObject glm = computeGLMlog( lsmsx, va );
@@ -550,7 +549,7 @@ public class GLMTest extends TestUtil {
 
   @Test public void testLogRegXVal() {
     Key k1= loadAndParseFile("m.hex","smalldata/logreg/umass_statdata/cgd.dat");
-    ValueArray va = DKV.get(k1).get();
+    ValueArray va = ValueArray.get(k1);
 
     LSMSolver lsms = new ADMMSolver(0.0001/*lambda*/,1/*alpha*/);
     // Now a Gaussian GLM model for the same thing

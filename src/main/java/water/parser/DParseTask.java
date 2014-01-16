@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import water.*;
+import water.Job.JobCancelledException;
 import water.ValueArray.Column;
 import water.parser.ParseDataset.FileInfo;
 import water.util.Utils;
@@ -124,7 +125,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
 
   private static final class VAChunkDataIn implements CustomParser.DataIn {
     final Key _key;
-    public VAChunkDataIn(Key k) {_key = k;}
+    public VAChunkDataIn(Key k) { _key = k; }
     // Fetch chunk data on demand
     public byte[] getChunkData( int cidx ) {
       Key key = _key;
@@ -533,7 +534,7 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
    */
   @Override public void map(Key key) {
     if(_job.cancelled())
-      return;
+      throw new JobCancelledException();
     _map = true;
     Key aryKey = null;
     boolean arraylet = key._kb[0] == Key.ARRAYLET_CHUNK;

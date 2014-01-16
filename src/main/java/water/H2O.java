@@ -30,7 +30,7 @@ public final class H2O {
 
   public static String VERSION = "(unknown)";
 
-  // User name for this Cloud
+  // User name for this Cloud (either the username or the argument for the option -name)
   public static String NAME;
 
   // The default port for finding a Cloud
@@ -124,6 +124,12 @@ public final class H2O {
 
     // Should never reach here.
     System.exit(222);
+  }
+
+  /** Shutdown itself by sending a shutdown UDP packet. */
+  public void shutdown() {
+    UDPRebooted.T.shutdown.send(H2O.SELF);
+    H2O.exit(0);
   }
 
   // --------------------------------------------------------------------------
@@ -243,7 +249,7 @@ public final class H2O {
     // go round-robin in 64MB chunks.
     if(key._kb[0] == Key.DVEC || key._kb[0] == Key.VEC){
       long cidx = 0;
-      int skip = 1+1+4+4;       // Skip both the vec# and chunk#?
+      int skip = water.fvec.Vec.KEY_PREFIX_LEN; // 1+1+4+4: Skip both the vec# and chunk#
       if( key._kb[0] == Key.DVEC ) {
         long cSz = 1L << (26 - water.fvec.Vec.LOG_CHK);
         cidx = UDP.get4(key._kb, 1+1+4); // Chunk index
@@ -971,7 +977,7 @@ public final class H2O {
 
     Log.info("If you have trouble connecting, try SSH tunneling from your local machine (e.g., via port 55555):\n" +
             "  1. Open a terminal and run 'ssh -L 55555:localhost:"
-            + API_PORT + " " + NAME + "@" + SELF_ADDRESS.getHostAddress() + "'\n" +
+            + API_PORT + " " + System.getProperty("user.name") + "@" + SELF_ADDRESS.getHostAddress() + "'\n" +
             "  2. Point your browser to http://localhost:55555");
 
 

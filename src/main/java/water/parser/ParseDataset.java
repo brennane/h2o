@@ -276,7 +276,6 @@ public final class ParseDataset extends Job {
     }
     int j = 0;
     UKV.remove(job.dest());// remove any previous instance and insert a sentinel (to ensure no one has been writing to the same keys during our parse!
-    UKV.remove(ValueArray.makeVAKey(job.dest()));
     Key [] nonEmptyKeys = new Key[keys.length];
     for (int i = 0; i < keys.length; ++i) {
       Value v = DKV.get(keys[i]);
@@ -366,13 +365,20 @@ public final class ParseDataset extends Job {
     @Override
     public boolean onExceptionalCompletion(Throwable ex, CountedCompleter caller){
       UKV.remove(job._progress);
-      job.cancel("Got Exception " + ex.getClass().getSimpleName() + ", with msg " + ex.getMessage());
+      if(!(ex instanceof JobCancelledException))
+        job.cancel("Got Exception " + ex.getClass().getSimpleName() + ", with msg " + ex.getMessage());
       return super.onExceptionalCompletion(ex, caller);
     }
   }
   public static Job forkParseDataset(final Key dest, final Key[] keys, final CustomParser.ParserSetup setup) {
-    ParseDataset job = new ParseDataset(dest, keys);
-    ParserFJTask fjt = new ParserFJTask(job, keys, setup);
+    // Handed a list of user-mode Keys, make shadow VAKeys for them all.
+    Key[] keys2 = new Key[keys.length];
+    for( int i=0; i<keys.length; i++ ) {
+      Key k = keys[i];
+      keys2[i] = (k.user_allowed() && (DKV.get(k)==null || !DKV.get(k).isRawData())) ? ValueArray.makeVAKey(k) : k;
+    }
+    ParseDataset job = new ParseDataset(dest, keys2);
+    ParserFJTask fjt = new ParserFJTask(job , keys2, setup);
     job.start(fjt);
     H2O.submitTask(fjt);
     return job;
@@ -488,15 +494,15 @@ public final class ParseDataset extends Job {
               Log.info("Can't understand compression: _comp: "+ comp+" csz: "+csz+" key: "+key+" ris: "+ris);
               throw H2O.unimpl();
             }
-            _fileInfo[_idx]._okey = Key.make(new String(key._kb) + "_UNZIPPED");
-            ValueArray.readPut(_fileInfo[_idx]._okey, is,_job);
-            v = DKV.get(_fileInfo[_idx]._okey);
+            Key frKey = Key.make(ValueArray.makeFRKey(key) + "_UNZIPPED");
+            ValueArray.readPut(frKey, is,_job);
+            v = DKV.get(_fileInfo[_idx]._okey = ValueArray.makeVAKey(frKey) );
             onProgressSizeChange(2*(v.length() - csz), _job); // the 2 passes will go over larger file!
             assert v != null;
           }catch (EOFException e){
             if(ris != null && ris instanceof RIStream){
               RIStream r = (RIStream)ris;
-              System.err.println("Unexpected eof after reading " + r.off() + "bytes, expeted size = " + r.expectedSz());
+              System.err.println("Unexpected eof after reading " + r.off() + "bytes, expected size = " + r.expectedSz());
             }
             System.err.println("failed decompressing data " + key.toString() + " with compression " + comp);
             throw new RuntimeException(e);

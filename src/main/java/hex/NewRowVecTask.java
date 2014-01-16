@@ -63,7 +63,6 @@ public class NewRowVecTask<T extends Iced> extends MRTask {
    */
   public static final class DataFrame extends Iced {
     final ValueArray _ary;
-    final Frame _ary_fr;        // Same as _ary, in Frame format
     final private Sampling _s;
     final int[] _modelDataMap;
     final int[] _colCatMap;
@@ -84,7 +83,6 @@ public class NewRowVecTask<T extends Iced> extends MRTask {
     }
     private DataFrame(ValueArray ary, int [] colIds, boolean standardize){
       _ary = ary;
-      _ary_fr = null;           // Unimplemented!!!
       _s = null;
       _response = -1;
       _colCatMap = new int[colIds.length+1];
@@ -131,7 +129,6 @@ public class NewRowVecTask<T extends Iced> extends MRTask {
       colIds[idx] = colIds[colIds.length-1];
       _response = idx;
       _ary = ary;
-      _ary_fr = null;           // Unimplemented!!!
       _modelDataMap = colIds;
       _s = s;
       _colCatMap = new int[colIds.length+1];
@@ -192,7 +189,7 @@ public class NewRowVecTask<T extends Iced> extends MRTask {
     }
     // Returns frame with only columns specified in model
     public Frame modelAsFrame() {
-      Frame temp = _ary_fr;
+      Frame temp = UKV.get(ValueArray.makeFRKey(_ary._key));
       Vec[] vecs = new Vec[_modelDataMap.length];
       String[] names = new String[_modelDataMap.length];
       for(int i = 0; i < _modelDataMap.length; i++) {

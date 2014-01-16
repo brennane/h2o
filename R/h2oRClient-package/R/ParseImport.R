@@ -197,29 +197,33 @@ h2o.importHDFS <- function(object, path, pattern = "", key = "", parse = TRUE, h
   if(!is.logical(parse)) stop("parse must be of class logical")
   if(version != 1 && version != 2) stop("version must be either 1 (ValueArray) or 2 (FluidVecs)")
   
-  if(version == 1) {
-    res = h2o.__remoteSend(object, h2o.__PAGE_IMPORTHDFS, path=path)
-    if(length(res$failed) > 0) {
-      for(i in 1:res$num_failed) 
-        cat(res$failed[[i]]$file, "failed to import")
-    }
-    
-    # Return only the files that successfully imported
-    if(res$num_succeeded > 0) {
-      if(parse) {
-        regPath = paste(path, pattern, sep="/")
-        srcKey = ifelse(res$num_succeeded == 1, res$succeeded[[1]]$key, paste("*", regPath, "*", sep=""))
-        rawData = new("H2ORawData", h2o=object, key=srcKey)
-        h2o.parseRaw(data=rawData, key=key, header=header, sep=sep, col.names=col.names, version=version) 
-      } else {
-        myData = lapply(res$succeeded, function(x) { new("H2ORawData", h2o=object, key=x$key) })
-        if(res$num_succeeded == 1) myData[[1]] else myData
-      }
-    } else stop("All files failed to import!")
-  } else {
-    print("This function has been deprecated in FluidVecs. In the future, please use h2o.importFolder with a hdfs:// prefix instead.")
-    h2o.importFolder(object, path, pattern, key, parse, header, sep, col.names, version)
+  res = h2o.__remoteSend(object, h2o.__PAGE_IMPORTHDFS, path=path)
+  if(length(res$failed) > 0) {
+    for(i in 1:res$num_failed) 
+      cat(res$failed[[i]]$file, "failed to import")
   }
+  
+  # Return only the files that successfully imported
+  if(res$num_succeeded > 0) {
+    if(parse) {
+      regPath = paste(path, pattern, sep="/")
+      srcKey = ifelse(res$num_succeeded == 1, res$succeeded[[1]]$key, paste("*", regPath, "*", sep=""))
+      rawData = new("H2ORawData", h2o=object, key=srcKey)
+      h2o.parseRaw(data=rawData, key=key, header=header, sep=sep, col.names=col.names, version=version) 
+    } else {
+      myData = lapply(res$succeeded, function(x) { new("H2ORawData", h2o=object, key=x$key) })
+      if(res$num_succeeded == 1) myData[[1]] else myData
+    }
+  } else stop("All files failed to import!")
+}
+
+h2o.exportHDFS <- function(object, path) {
+  if(inherits(object, "H2OModelVA")) stop("h2o.exportHDFS does not work under VA")
+  else if(!inherits(object, "H2OModel")) stop("object must be an H2O model")
+  if(!is.character(path)) stop("path must be of class character")
+  if(nchar(path) == 0) stop("path must be a non-empty string")
+  
+  res = h2o.__remoteSend(object@data@h2o, h2o.__PAGE_EXPORTHDFS, source_key = object@key, path = path)
 }
 
 setGeneric("h2o<-", function(x, value) { standardGeneric("h2o<-") })

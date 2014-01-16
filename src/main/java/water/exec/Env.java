@@ -65,6 +65,7 @@ public class Env extends Iced {
     assert _ary[idx]!=null;
     return _ary[idx];
   }
+  public String keyId(int d, int n) { return _key[_display[_tod-d]+n]; }
 
   // Push k empty slots
   void push( int slots ) {

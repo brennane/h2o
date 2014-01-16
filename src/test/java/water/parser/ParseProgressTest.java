@@ -27,7 +27,7 @@ public class ParseProgressTest extends TestUtil {
     if (f == null || !f.exists()) {
       System.out.println("Could not find covtype.data, skipping ParseProgressTest.testCovtype()");
       return;
-	 }
+    }
 
     FileIntegrityChecker c = FileIntegrityChecker.check(f,false);
     assertEquals(1,c.size());   // Exactly 1 file
@@ -37,7 +37,7 @@ public class ParseProgressTest extends TestUtil {
     for( int i=0; i<1; i++ ) {
       Key covkey = Key.make("c"+i+".hex");
       ParseDataset.parse(covkey,new Key[]{k});
-      ValueArray ary = DKV.get(covkey).get();
+      ValueArray ary = ValueArray.get(covkey);
       UKV.remove(covkey);
     }
 

@@ -79,9 +79,12 @@ public class FileIntegrityChecker extends DRemoteTask<FileIntegrityChecker> {
     } else {
       k = PersistNFS.decodeFile(f);
       long size = f.length();
-      Value val = (size < 2*ValueArray.CHUNK_SZ)
-        ? new Value(k,(int)size,Value.NFS)
-        : new Value(k,new ValueArray(k,size),Value.NFS);
+      Value val;
+      if( size < 2*ValueArray.CHUNK_SZ ) val = new Value(k,(int)size,Value.NFS);
+      else {
+        k = ValueArray.makeVAKey(k);
+        val = new Value(k,new ValueArray(k,size),Value.NFS);
+      }
       val.setdsk();
       UKV.put(k, val, fs);
     }

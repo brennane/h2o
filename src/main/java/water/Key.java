@@ -162,7 +162,7 @@ public final class Key extends Iced implements Comparable {
     int i=0; // Include these header bytes or not
     int chk = 0; // Chunk number, for chunks beyond 64Meg
     if( kb.length >= 10 && kb[0] == ARRAYLET_CHUNK && kb[1] == 0 ) {
-      long off = UDP.get8(kb,2);
+      long off = UDP.get8(kb,2)<<ValueArray.LOG_CHK;
       i += 2+8; // Skip the length bytes; they are now not part of hash
       boolean big = (off>>20) >= 64; // Is offset >= 64Meg?
       chk = (int)(off >>> ((big?6:2)+20)); // Divide by 64Meg or 4Meg; comes up with a "block number"
@@ -219,13 +219,13 @@ public final class Key extends Iced implements Comparable {
     // 0 - systemType, from 0-31
     // 1 - replica-count, plus up to 3 bits for ip4 vs ip6
     // 2-n - zero, one, two or 3 IP4 (4+2 bytes) or IP6 (16+2 bytes) addresses
-    // 2-5- 4 bytes of chunk#, or -1 for masters
+    // 2-9- 8 bytes of chunk#, or -1 for masters
     // n+ - repeat of the original kb
     AutoBuffer ab = new AutoBuffer();
     ab.put1(systemType).put1(replicas.length);
     for( H2ONode h2o : replicas )
       h2o.write(ab);
-    ab.put4(-1);
+    ab.put8(-1);
     ab.putA1(kb,kb.length);
     return make(Arrays.copyOf(ab.buf(),ab.position()),rf);
   }

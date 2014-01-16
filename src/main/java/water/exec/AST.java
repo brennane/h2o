@@ -422,7 +422,11 @@ class ASTAssign extends AST {
       return;
     }
     // Pull the LHS off the stack; do not lower the refcnt
-    Frame ary = env.frId(id._depth,id._num);
+    Frame  ary = env. frId(id._depth,id._num);
+    String key = env.keyId(id._depth,id._num);
+    // Since this Frame will be side-effected, remove any backing shadow VA
+    if( key != null ) UKV.remove(ValueArray.makeVAKey(key));
+
     // Pull the RHS off the stack; do not lower the refcnt
     Frame ary_rhs=null;  double d=Double.NaN;
     if( env.isDbl() )
@@ -460,7 +464,7 @@ class ASTAssign extends AST {
 
     // Partial row assignment?
     if( rows != null ) {
-        throw H2O.unimpl();
+      throw H2O.unimpl();
     }
     assert cols != null; // all/all assignment uses simple-assignment
 

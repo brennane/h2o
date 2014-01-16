@@ -12,9 +12,9 @@ public class BitCmpTest extends TestUtil {
       k1 = load_test_file("smalldata/stego/stego_training.data","k1");
       k2 = load_test_file("smalldata/stego/stego_training.data","k2");
       k3 = load_test_file("smalldata/stego/stego_training_modified.data","k3");
-      Value v1 = DKV.get(k1);
-      Value v2 = DKV.get(k2);
-      Value v3 = DKV.get(k3);
+      Value v1 = DKV.get(ValueArray.makeVAKey(k1));
+      Value v2 = DKV.get(ValueArray.makeVAKey(k2));
+      Value v3 = DKV.get(ValueArray.makeVAKey(k3));
       assertTrue(v1.isBitIdentical(v2));
       assertTrue(v2.isBitIdentical(v1));
       assertFalse(v1.isBitIdentical(v3));

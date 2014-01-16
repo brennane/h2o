@@ -27,7 +27,7 @@ public class RFPredDomainTest extends TestUtil {
   static void runIrisRF(final String trainDS, final String testDS, double expTestErr, long[][] expCM, String[] expDomain) throws Exception {
     String trainKeyName = "iris_train.hex";
     Key trainKey        = loadAndParseFile(trainKeyName, trainDS);
-    ValueArray trainData = DKV.get(trainKey).get();
+    ValueArray trainData = ValueArray.get(trainKey);
 
     int  trees    = 10;
     int  depth    = 50;
@@ -46,7 +46,7 @@ public class RFPredDomainTest extends TestUtil {
     String testKeyName  = "iris_test.hex";
     // Load validation dataset
     Key testKey         = loadAndParseFile(testKeyName, testDS);
-    ValueArray testData = DKV.get(testKey).get();
+    ValueArray testData = ValueArray.get(testKey);
     CMJob cmJob = ConfusionTask.make(model, testData._key, model._features-1, null, false);
     CMFinal cm = cmJob.get();
     cm.report();

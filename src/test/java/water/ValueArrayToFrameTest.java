@@ -45,14 +45,14 @@ public class ValueArrayToFrameTest extends TestUtil {
 
       key1 = loadAndParseFile(csv1.getName(), csv1.getPath());
       key2 = loadAndParseFile(csv2.getName(), csv2.getPath());
-      ValueArray va1 = UKV.get(key);
-      ValueArray va2 = UKV.get(key);
+      ValueArray va1 = ValueArray.get(key);
+      ValueArray va2 = ValueArray.get(key);
       Assert.assertEquals(va._numrows, va1._numrows);
       Assert.assertEquals(va._cols.length, va1._cols.length);
       Assert.assertEquals(va._numrows, va2._numrows);
       Assert.assertEquals(va._cols.length, va2._cols.length);
-      Value v1 = DKV.get(key1);
-      Value v2 = DKV.get(key2);
+      Value v1 = DKV.get(va1._key);
+      Value v2 = DKV.get(va2._key);
       Assert.assertTrue(v1.isBitIdentical(v2));
     } catch( Exception e ) {
       throw new RuntimeException(e);

@@ -150,10 +150,6 @@ public class TestUtil {
     return DKV.get(parsedKey).get();
   }
 
-  public static ValueArray parse_test_key(Key fileKey) {
-    return parse_test_key(fileKey, Key.make());
-  }
-
   public static String replaceExtension(String fname, String newExt) {
     int i = fname.lastIndexOf('.');
     if( i == -1 )
@@ -178,7 +174,6 @@ public class TestUtil {
     assert frKey.user_allowed();
     Key vaKey = ValueArray.makeVAKey(frKey);
     UKV.remove(frKey);
-    UKV.remove(vaKey);
     Futures fs = new Futures();
     // Gather basic column info, 1 column per array
     ValueArray.Column cols[] = new ValueArray.Column[arys.length];

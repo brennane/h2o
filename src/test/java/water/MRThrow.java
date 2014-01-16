@@ -28,7 +28,7 @@ public class MRThrow extends TestUtil {
         ByteHistoThrow bh = new ByteHistoThrow();
         bh._throwAt = H2O.CLOUD._memary[i].toString();
         try {
-          bh.invoke(h2okey); // invoke should throw DistributedException wrapped up in RunTimeException
+          bh.invoke(ValueArray.makeVAKey(h2okey)); // invoke should throw DistributedException wrapped up in RunTimeException
           fail("should've thrown");
         }catch(RuntimeException e){
           assertTrue(e.getMessage().indexOf("test") != -1);
@@ -50,7 +50,7 @@ public class MRThrow extends TestUtil {
         ByteHistoThrow bh = new ByteHistoThrow();
         bh._throwAt = H2O.CLOUD._memary[i].toString();
         try {
-          bh.dfork(h2okey).get(); // invoke should throw DistributedException wrapped up in RunTimeException
+          bh.dfork(ValueArray.makeVAKey(h2okey)).get(); // invoke should throw DistributedException wrapped up in RunTimeException
           fail("should've thrown");
         }catch(ExecutionException e){
           assertTrue(e.getMessage().indexOf("test") != -1);
@@ -81,7 +81,7 @@ public class MRThrow extends TestUtil {
               return true;
             }
           });
-          bh.dfork(h2okey).get(); // invoke should throw DistrDTibutedException wrapped up in RunTimeException
+          bh.dfork(ValueArray.makeVAKey(h2okey)).get(); // invoke should throw DistrDTibutedException wrapped up in RunTimeException
           assertTrue(ok[0]);
         }catch(ExecutionException eex){
           assertTrue(eex.getCause().getMessage().indexOf("test") != -1);
