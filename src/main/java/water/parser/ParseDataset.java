@@ -3,7 +3,6 @@ package water.parser;
 import java.io.EOFException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.zip.*;
 
 import jsr166y.CountedCompleter;
@@ -17,7 +16,6 @@ import water.parser.DParseTask.Pass;
 import water.util.*;
 import water.util.Utils.IcedArrayList;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.Closeables;
 
 /**
