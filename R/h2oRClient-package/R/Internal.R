@@ -294,6 +294,10 @@ h2o.__isDone <- function(client, algo, resH) {
 }
 
 h2o.__cancelJob <- function(client, keyName) {
+  if(missing(client) || class(client) != "H2OClient") stop("client must be of class H2OClient")
+  if(missing(keyName) || !is.character(keyName)) stop("keyName must be of class character")
+  if(nchar(keyName) == 0) stop("keyName must be an non-empty string")
+  
   res = h2o.__remoteSend(client, h2o.__PAGE_JOBS)
   res = res$jobs
   if(length(res) == 0) stop("No jobs found in queue")

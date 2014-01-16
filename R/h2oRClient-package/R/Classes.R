@@ -26,6 +26,7 @@ setClass("H2ONNGrid", contains="H2OGrid")
 setClass("H2OGLMModelVA", contains="H2OModel", representation(xval="list"))
 setClass("H2OGLMGridVA", contains="H2OGrid")
 setClass("H2ORFModelVA", contains="H2OModel")
+setClass("H2OKMeansModelVA", contains="H2OModel")
 
 # Register finalizers for H2O data and model objects
 # setMethod("initialize", "H2ORawData", function(.Object, h2o = new("H2OClient"), key = "") {
@@ -127,14 +128,14 @@ setMethod("show", "H2OGLMModel", function(object) {
 
 setMethod("show", "H2OKMeansModel", function(object) {
   print(object@data)
-  cat("K-Means Model Key:", object@key)
+  cat("K-Means2 Model Key:", object@key)
 
   model = object@model
   cat("\n\nK-means clustering with", length(model$size), "clusters of sizes "); cat(model$size, sep=", ")
   cat("\n\nCluster means:\n"); print(model$centers)
   cat("\nClustering vector:\n"); print(summary(model$cluster))
   cat("\nWithin cluster sum of squares by cluster:\n"); print(model$withinss)
-  cat("\nAvailable components:\n\n"); print(names(model))
+  cat("\nAvailable components:\n"); print(names(model))
 })
 
 setMethod("show", "H2ONNModel", function(object) {
@@ -625,6 +626,8 @@ setMethod("dim", "H2OParsedData", function(x) {
 })
 setMethod("dim<-", "H2OParsedData", function(x, value) { stop("Unimplemented") })
 
+setMethod("length", "H2OParsedData", function(x) { ncol(x) })
+
 setMethod("as.data.frame", "H2OParsedData", function(x) {
   url <- paste('http://', x@h2o@ip, ':', x@h2o@port, '/2/DownloadDataset?src_key=', x@key, sep='')
   ttt <- getURL(url)
@@ -842,21 +845,7 @@ str.H2OParsedData <- function(object, ...) {
   }
 }
 
-str.H2OParsedDataVA <- function(object, ...) {
-  str(new("H2OParsedData", h2o=object@h2o, key=object@key), ...)
-}
-
 #--------------------------------- ValueArray ----------------------------------#
-setMethod("show", "H2ORawDataVA", function(object) {
-  print(object@h2o)
-  cat("Raw Data Key:", object@key, "\n")
-})
-
-setMethod("show", "H2OParsedDataVA", function(object) {
-  print(object@h2o)
-  cat("Parsed Data Key:", object@key, "\n")
-})
-
 setMethod("show", "H2OGLMModelVA", function(object) {
   print(object@data)
   cat("GLM Model Key:", object@key, "\n\n")
@@ -899,6 +888,18 @@ setMethod("show", "H2OGLMGridVA", function(object) {
   cat("\nSummary\n"); print(temp)
 })
 
+setMethod("show", "H2OKMeansModelVA", function(object) {
+  print(object@data)
+  cat("K-Means Model Key:", object@key)
+  
+  model = object@model
+  cat("\n\nK-means clustering with", length(model$size), "clusters of sizes "); cat(model$size, sep=", ")
+  cat("\n\nCluster means:\n"); print(model$centers)
+  cat("\nClustering vector:\n"); print(summary(model$cluster))
+  cat("\nWithin cluster sum of squares by cluster:\n"); print(model$withinss)
+  cat("\nAvailable components:\n"); print(names(model))
+})
+
 setMethod("show", "H2ORFModelVA", function(object) {
   print(object@data)
   cat("Random Forest Model Key:", object@key)
@@ -907,107 +908,4 @@ setMethod("show", "H2ORFModelVA", function(object) {
   cat("\n\nClassification Error:", model$classification_error)
   cat("\nConfusion Matrix:\n"); print(model$confusion)
   cat("\nTree Stats:\n"); print(model$tree_sum)
-})
-
-setMethod("colnames", "H2OParsedDataVA", function(x) {
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key)
-  unlist(lapply(res$cols, function(y) y$name))
-})
-
-setMethod("colnames<-", signature(x="H2OParsedDataVA", value="H2OParsedDataVA"), 
-  function(x, value) { h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, source=value@key); return(x) })
-
-setMethod("colnames<-", signature(x="H2OParsedDataVA", value="character"),
-  function(x, value) {
-    if(length(value) != ncol(x)) stop("Mismatched column dimensions!")
-    stop("Unimplemented"); return(x)
-  })
-
-setMethod("names", "H2OParsedDataVA", function(x) { colnames(x) })
-
-setMethod("nrow", "H2OParsedDataVA", function(x) {
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key); as.numeric(res$num_rows) })
-
-setMethod("ncol", "H2OParsedDataVA", function(x) {
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key); as.numeric(res$num_cols) })
-
-setMethod("dim", "H2OParsedDataVA", function(x) {
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key)
-  as.numeric(c(res$num_rows, res$num_cols))
-})
-
-setMethod("length", "H2OParsedData", function(x) { ncol(x) })
-
-setMethod("head", "H2OParsedDataVA", function(x, n = 6L, ...) {
-  numRows = nrow(x)
-  stopifnot(length(n) == 1L)
-  n <- ifelse(n < 0L, max(numRows + n, 0L), min(n, numRows))
-  if(n == 0) return(data.frame())
-  if(n > MAX_INSPECT_VIEW) stop(paste("Cannot view more than", MAX_INSPECT_VIEW, "rows"))
-  
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key, offset=0, view=n)
-  temp = lapply(res$rows, function(y) { y$row = NULL; as.data.frame(y) })
-  if(is.null(temp)) return(temp)
-  x.slice = do.call(rbind, temp)
-
-  res2 = h2o.__remoteSend(x@h2o, h2o.__HACK_LEVELS, source = x@key)
-  for(i in 1:ncol(x)) {
-    if(!is.null(res2$levels[[i]]))
-      x.slice[,i] <- factor(x.slice[,i], levels = res2$levels[[i]])
-  }
-  return(x.slice)
-})
-
-setMethod("tail", "H2OParsedDataVA", function(x, n = 6L, ...) {
-  stopifnot(length(n) == 1L)
-  nrx <- nrow(x)
-  n <- ifelse(n < 0L, max(nrx + n, 0L), min(n, nrx))
-  if(n == 0) return(data.frame())
-  if(n > MAX_INSPECT_VIEW) stop(paste("Cannot view more than", MAX_INSPECT_VIEW, "rows"))
-  
-  idx = seq.int(to = nrx, length.out = n)
-  res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT, key=x@key, offset=idx[1], view=length(idx))
-  temp = lapply(res$rows, function(y) { y$row = NULL; as.data.frame(y) })
-  if(is.null(temp)) return(temp)
-  x.slice = do.call(rbind, temp)
-  rownames(x.slice) = idx
-  
-  res2 = h2o.__remoteSend(x@h2o, h2o.__HACK_LEVELS, source = x@key)
-  for(i in 1:ncol(x)) {
-    if(!is.null(res2$levels[[i]]))
-      x.slice[,i] <- factor(x.slice[,i], levels = res2$levels[[i]])
-  }
-  return(x.slice)
-})
-
-setMethod("summary", "H2OParsedDataVA", function(object) {
-  res = h2o.__remoteSend(object@h2o, h2o.__PAGE_SUMMARY, key=object@key)
-  res = res$summary$columns
-  result = NULL; cnames = NULL
-  for(i in 1:length(res)) {
-    cnames = c(cnames, paste("      ", res[[i]]$name, sep=""))
-    if(res[[i]]$type == "number") {
-      if(is.null(res[[i]]$min) || length(res[[i]]$min) == 0) res[[i]]$min = NaN
-      if(is.null(res[[i]]$max) || length(res[[i]]$max) == 0) res[[i]]$max = NaN
-      if(is.null(res[[i]]$mean) || length(res[[i]]$mean) == 0) res[[i]]$mean = NaN
-      if(is.null(res[[i]]$percentiles))
-        params = format(rep(round(as.numeric(res[[i]]$mean), 3), 6))
-      else
-        params = format(round(as.numeric(c(res[[i]]$min[1], res[[i]]$percentiles$values[4], res[[i]]$percentiles$values[6], res[[i]]$mean, res[[i]]$percentiles$values[8], res[[i]]$max[1])), 3))
-      result = cbind(result, c(paste("Min.   :", params[1], "  ", sep=""), paste("1st Qu.:", params[2], "  ", sep=""),
-                               paste("Median :", params[3], "  ", sep=""), paste("Mean   :", params[4], "  ", sep=""),
-                               paste("3rd Qu.:", params[5], "  ", sep=""), paste("Max.   :", params[6], "  ", sep="")))
-    }
-    else if(res[[i]]$type == "enum") {
-      col = matrix(rep("", 6), ncol=1)
-      len = length(res[[i]]$histogram$bins)
-      for(j in 1:min(6,len))
-        col[j] = paste(res[[i]]$histogram$bin_names[len-j+1], ": ", res[[i]]$histogram$bins[len-j+1], sep="")
-      result = cbind(result, col)
-    }
-  }
-  result = as.table(result)
-  rownames(result) <- rep("", 6)
-  colnames(result) <- cnames
-  result
 })
