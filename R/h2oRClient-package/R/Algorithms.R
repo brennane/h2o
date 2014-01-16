@@ -369,10 +369,10 @@ h2o.kmeans.VA <- function(data, centers, cols = '', iter.max = 10, normalize = F
   if(missing(centers) ) stop('must specify centers')
   if(!is.numeric(centers) && !is.integer(centers)) stop('must specify centers')
   if( any(centers < 1) ) stop("centers must be an integer greater than 0")
-  if(!is.numeric(iter.max)) stop('iter.max must be numeric')
+  if(missing(iter.max) || !is.numeric(iter.max)) stop('iter.max must be numeric')
   if( any(iter.max < 1)) stop('iter.max must be >= 1')
   if(!is.logical(normalize)) stop("normalize must be of class logical")
-  if(length(centers) > 1 || length(iter.max) > 1) stop("KMeans grid search not supported under ValueArray")
+  if(length(centers) > 1 || length(iter.max) > 1) stop("K-Means grid search not supported under ValueArray")
   
   cc <- colnames(data)
   if(length(cols) == 1 && cols == '')
@@ -566,9 +566,9 @@ h2o.__getNNResults <- function(res) {
 }
 
 # ----------------------- Principal Components Analysis ----------------------------- #
-h2o.prcomp <- function(data, tol=0, standardize=T, retx=F) {
+h2o.prcomp <- function(data, tol=0, standardize=TRUE, retx=FALSE) {
   if( missing(data) ) stop('must specify data')
-  if(class(data) != "H2OParsedData") stop('data must be an H2O FluidVec dataset')
+  if(class(data) != "H2OParsedData") stop('data must be an H2O dataset')
   if(!is.numeric(tol)) stop('tol must be numeric')
   if(!is.logical(standardize)) stop('standardize must be TRUE or FALSE')
   if(!is.logical(retx)) stop('retx must be TRUE or FALSE')
@@ -620,7 +620,7 @@ h2o.pcr <- function(x, y, data, ncomp, family, nfolds=10, alpha=0.5, lambda=1e-5
   h2o.glm.FV(1:ncomp, ncomp+1, myGLMData, family, nfolds, alpha, lambda, tweedie.p)
 }
 
-h2o.prcomp.internal <- function(data, x_ignore, dest, max_pc=10000, tol=0, standardize=T) {
+h2o.prcomp.internal <- function(data, x_ignore, dest, max_pc=10000, tol=0, standardize=TRUE) {
   res = h2o.__remoteSend(data@h2o, h2o.__PAGE_PCA, source=data@key, ignored_cols_by_name=x_ignore, destination_key=dest, max_pc=max_pc, tolerance=tol, standardize=as.numeric(standardize))
   on.exit(h2o.__cancelJob(data@h2o, res$job_key))
   # while(h2o.__poll(data@h2o, res$response$redirect_request_args$job) != -1) { Sys.sleep(1) }

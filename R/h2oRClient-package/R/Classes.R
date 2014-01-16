@@ -156,8 +156,8 @@ setMethod("show", "H2ODRFModel", function(object) {
 
   model = object@model
   cat("\nNumber of trees:", model$ntree)
-  cat("\nTree statistics:\n"); print(model$forest)
-  cat("\nConfusion matrix:\n"); cat("Reported on", object@valid@key, "\n"); print(model$confusion)
+  cat("\n\nConfusion Matrix:\n"); cat("Reported on", object@valid@key, "\n"); print(model$confusion)
+  cat("\nTree Statistics:\n"); print(model$forest)
 })
 
 setMethod("show", "H2OPCAModel", function(object) {
@@ -519,6 +519,16 @@ setMethod("colnames", "H2OParsedData", function(x) {
   res = h2o.__remoteSend(x@h2o, h2o.__PAGE_INSPECT2, src_key=x@key)
   unlist(lapply(res$cols, function(y) y$name))
 })
+
+# TODO: Want colnames<- to modify in place
+setMethod("colnames<-", signature(x="H2OParsedData", value="H2OParsedData"), 
+  function(x, value) { h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, source=value@key); return(x) })
+
+setMethod("colnames<-", signature(x="H2OParsedData", value="character"),
+  function(x, value) {
+    if(length(value) != ncol(x)) stop("Mismatched column dimensions!")
+    stop("Unimplemented"); return(x)
+  })
 
 setMethod("names", "H2OParsedData", function(x) { colnames(x) })
 setMethod("names<-", "H2OParsedData", function(x, value) { names(x) <- value })
@@ -907,5 +917,5 @@ setMethod("show", "H2ORFModelVA", function(object) {
   model = object@model
   cat("\n\nClassification Error:", model$classification_error)
   cat("\nConfusion Matrix:\n"); print(model$confusion)
-  cat("\nTree Stats:\n"); print(model$tree_sum)
+  cat("\nTree Statistics:\n"); print(model$tree_sum)
 })

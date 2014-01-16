@@ -235,15 +235,6 @@ setMethod("h2o<-", signature(x="H2OParsedData", value="numeric"), function(x, va
   res = h2o.__exec2_dest_key(x@h2o, paste("c(", paste(value, collapse=","), ")", sep=""), x@key); return(x)
 })
 
-setMethod("colnames<-", signature(x="H2OParsedData", value="H2OParsedData"), 
-  function(x, value) { h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, source=value@key); return(x) })
-
-setMethod("colnames<-", signature(x="H2OParsedData", value="character"),
-  function(x, value) {
-    if(length(value) != ncol(x)) stop("Mismatched column dimensions!")
-    stop("Unimplemented"); return(x)
-})
-
 # ----------------------- Log helper ----------------------- #
 h2o.logAndEcho <- function(conn, message) {
   if (class(conn) != "H2OClient")
