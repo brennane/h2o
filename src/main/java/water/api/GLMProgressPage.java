@@ -92,7 +92,7 @@ public class GLMProgressPage extends Request {
     private void modelHTML( GLMModel m, JsonObject json, StringBuilder sb ) {
       switch(m.status()){
       case Done:
-        sb.append("<div class='alert'>Actions: " + (m.isSolved() ? (GLMScore.link(m._selfKey,m._vals[0].bestThreshold(), "Validate on another dataset") + ", "):"") + GLM.link(m._dataKey,m, "Compute new model") + "</div>");
+        sb.append("<div class='alert'>Actions: " + (m.isSolved() ? (GLMScore.link(m._selfKey,m._vals[0].bestThreshold(), "Validate on another dataset") + ", "):"") + GLM.link(m._frKey,m, "Compute new model") + "</div>");
         break;
       case ComputingModel:
       case ComputingValidation:
@@ -131,7 +131,7 @@ public class GLMProgressPage extends Request {
         R.replace("succ","alert-success");
       }
       // Basic model stuff
-      R.replace("key",m._dataKey);
+      R.replace("key",m._frKey);
       R.replace("time",PrettyPrint.msecs(m._time,true));
       long xtime = 0;
       if(m._vals != null) for( GLMValidation v : m._vals )
@@ -159,7 +159,7 @@ public class GLMProgressPage extends Request {
       sb.append(R);
       // Validation / scoring
       if(m._vals != null)
-        validationHTML(m,m._vals,sb);
+        validationHTML(m,m._vals,m._frKey,sb);
     }
 
     private static final String ALPHA   = "&alpha;";
@@ -259,7 +259,7 @@ public class GLMProgressPage extends Request {
     }
 
 
-    static void validationHTML(GLMModel m, GLMValidation val, StringBuilder sb){
+    static void validationHTML(GLMModel m, GLMValidation val, Key frKey, StringBuilder sb){
 
       RString valHeader = new RString("<div class='alert'>Validation of model <a href='/Inspect.html?"+KEY+"=%modelKey'>%modelKey</a> on dataset <a href='/Inspect.html?"+KEY+"=%dataKey'>%dataKey</a></div>");
       RString xvalHeader = new RString("<div class='alert'>%valName of model <a href='/Inspect.html?"+KEY+"=%modelKey'>%modelKey</a></div>");
@@ -281,7 +281,7 @@ public class GLMProgressPage extends Request {
         sb.append(xvalHeader.toString());
       } else {
         valHeader.replace("modelKey", val.modelKey());
-        valHeader.replace("dataKey",val.dataKey());
+        valHeader.replace("dataKey",frKey);
         sb.append(valHeader.toString());
       }
 
@@ -345,11 +345,11 @@ public class GLMProgressPage extends Request {
       }
     }
 
-    private static void validationHTML( GLMModel m, GLMValidation[] vals, StringBuilder sb) {
+    private static void validationHTML( GLMModel m, GLMValidation[] vals, Key frKey, StringBuilder sb) {
       if( vals == null || vals.length == 0 ) return;
       sb.append("<h4>Validations</h4>");
       for( GLMValidation val : vals )
-        if(val != null)validationHTML(m,val, sb);
+        if(val != null)validationHTML(m,val, frKey, sb);
     }
 
     private static void cmRow( StringBuilder sb, String hd, double c0, double c1, double cerr ) {

@@ -80,6 +80,7 @@ public class GLM extends Request {
 
 
   public static String link(Key k, String content) {
+    assert k.user_allowed();
     RString rs = new RString("<a href='GLM.query?%key_param=%$key'>%content</a>");
     rs.replace("key_param", KEY);
     rs.replace("key", k.toString());
@@ -100,6 +101,7 @@ public class GLM extends Request {
           sb.append(","+i);
   }
   public static String link(Key k, GLMModel m, String content) {
+    assert k.user_allowed();
     int [] colIds = m.selectedColumns();
     if(colIds == null)return ""; /// the dataset is no longer on H2O, no link shoudl be produced!
     try {
@@ -224,8 +226,9 @@ public class GLM extends Request {
       JsonObject res = new JsonObject();
       Key dest = _dest.value();
       ValueArray ary = _key.value();
+      Key frKey = ValueArray.makeFRKey(ary._key);
       int[] columns = createColumns();
-      res.addProperty("key", ary._key.toString());
+      res.addProperty("key", frKey.toString());
       res.addProperty("h2o", H2O.SELF.toString());
       GLMParams glmParams = getGLMParams();
       if (glmParams == null){

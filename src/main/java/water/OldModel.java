@@ -36,24 +36,28 @@ public abstract class OldModel extends Iced {
    *  is handy during common model-building and for the historical record.  */
   @API(help="Datakey used to *build* the model")
   public final Key _dataKey;
+  public final Key _frKey;
 
   /** Empty constructor for deserialization */
-  public OldModel() { _selfKey = null; _va = null; _dataKey = null; }
+  public OldModel() { _selfKey = null; _va = null; _dataKey = null; _frKey = null; }
 
-  public OldModel( Key key ) { _selfKey = key; _va = null; _dataKey = null; }
+  public OldModel( Key key ) { _selfKey = key; _va = null; _dataKey = null; _frKey = null; }
   /** Default model, built from the selected columns of the given dataset.
    *  Data to be scored on the model has to have all the same columns (in any
    *  order, extra cols are ok).  Last column is the response column, or -1
    *  if there is no defined response column.  */
   public OldModel( Key key, int cols[], Key dataKey ) {
     _selfKey = key;
+    assert !dataKey.user_allowed();
     _dataKey = dataKey;
+    _frKey = ValueArray.makeFRKey(dataKey);
     _va = trimCols((ValueArray)DKV.get(dataKey).get(),cols);
   }
   /** Default artificial model, built from given column names.  */
   public OldModel( Key key, String[] colNames, String[] classNames ) {
     _selfKey = key;
     _dataKey = null;
+    _frKey = null;
 
     ValueArray.Column Cs[] = new ValueArray.Column[colNames.length+1];
     for( int i=0; i<colNames.length; i++ ) {
@@ -77,7 +81,9 @@ public abstract class OldModel extends Iced {
   public OldModel( Key key, ValueArray va, Key dataKey ) {
     _selfKey = key;
     _va = va;
+    assert dataKey==null || !dataKey.user_allowed();
     _dataKey = dataKey;
+    _frKey = ValueArray.makeFRKey(dataKey);
   }
   /** Simple shallow copy constructor */
   public OldModel( Key key, OldModel m ) { this(key,m._va,m._dataKey); }

@@ -952,7 +952,7 @@ public abstract class DGLM {
      */
     public int[] selectedColumns() {
       if( DKV.get(_dataKey) == null ) return null;
-      ValueArray ary = ValueArray.get(_dataKey);
+      ValueArray ary = DKV.get(_dataKey).get();
       HashSet<String> colNames = new HashSet<String>();
       for( int i = 0; i < _va._cols.length - 1; ++i )
         colNames.add(_va._cols[i]._name);
@@ -1786,7 +1786,7 @@ public abstract class DGLM {
   }
   public static GLMModel buildModel(Job job, Key resKey, DataFrame data, LSMSolver lsm, GLMParams params,
       double[] oldBeta, int xval, boolean parallel) throws JobCancelledException {
-    Log.info("running GLM on " + data._ary._key + " with " + data.expandedSz() + " predictors in total, " + (data.expandedSz() - data._dense) + " of which are categoricals.");
+    Log.info("running GLM on " + ValueArray.makeFRKey(data._ary._key) + " with " + data.expandedSz() + " predictors in total, " + (data.expandedSz() - data._dense) + " of which are categoricals.");
     GLMModel currentModel = null;
     ArrayList<String> warns = new ArrayList<String>();
     long t1 = System.currentTimeMillis();

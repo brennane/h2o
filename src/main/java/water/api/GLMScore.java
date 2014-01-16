@@ -69,7 +69,7 @@ public class GLMScore extends Request {
     GLMValidationBuilder( GLMModel m, GLMValidation v) { _m = m;_val=v; }
     public String build(Response response, JsonObject json, String contextName) {
       StringBuilder sb = new StringBuilder();
-      GLMBuilder.validationHTML(_m,_val,sb);
+      GLMBuilder.validationHTML(_m,_val,_m._frKey,sb);
       return sb.toString();
     }
   }
