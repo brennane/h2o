@@ -1663,12 +1663,12 @@ public class RequestArguments extends RequestStatics {
       Key k = Key.make(input);
       Value v = DKV.get(k);
       if (v == null)    throw new IllegalArgumentException("Key "+input+" not found!");
-      if (!v.isArray()) throw new IllegalArgumentException("Key "+input+" is not a valid HEX key");
-      return v.get();
+      if (!v.isFrame()) throw new IllegalArgumentException("Key "+input+" is not a valid HEX key");
+      return ValueArray.get(k);
     }
 
     @Override protected ValueArray defaultValue() {
-      return _defaultKey == null ? null : (ValueArray)DKV.get(_defaultKey).get();
+      return _defaultKey == null ? null : ValueArray.get(_defaultKey);
     }
 
     @Override protected String queryDescription() { return "An existing H2O HEX key"; }
