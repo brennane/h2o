@@ -41,7 +41,7 @@ conn <- new("H2OClient", ip=myIP, port=myPort)
 
 heading("Testing single file importHDFS for VA")
 url <- sprintf("hdfs://%s%s", hdfs_name_node, hdfs_iris_file)
-iris.VA.hex <- h2o.importHDFS.VA(conn, url)
+iris.VA.hex <- h2o.importHDFS(conn, url)
 head(iris.VA.hex)
 tail(iris.VA.hex)
 n <- nrow(iris.VA.hex)
@@ -49,7 +49,7 @@ print(n)
 if (n != 150) {
     stop("VA nrows is wrong")
 }
-if (class(iris.VA.hex) != "H2OParsedDataVA") {
+if (class(iris.VA.hex) != "H2OParsedData") {
     stop("iris.VA.hex is the wrong type")
 }
 print ("VA import worked")
@@ -57,7 +57,7 @@ print ("VA import worked")
 
 heading("Testing single file importHDFS for FV")
 url <- sprintf("hdfs://%s%s", hdfs_name_node, hdfs_iris_file)
-iris.FV.hex <- h2o.importFile(conn, url)
+iris.FV.hex <- h2o.importFile(conn, url, version = 2)
 head(iris.FV.hex)
 tail(iris.FV.hex)
 n <- nrow(iris.FV.hex)
@@ -76,7 +76,7 @@ print ("FV import worked")
 
 heading("Testing directory importHDFS for VA")
 url <- sprintf("hdfs://%s%s", hdfs_name_node, hdfs_iris_dir)
-iris.VA.dir.hex <- h2o.importHDFS.VA(conn, url, pattern="*.csv")
+iris.VA.dir.hex <- h2o.importHDFS(conn, url, pattern="*.csv")
 head(iris.VA.dir.hex)
 tail(iris.VA.dir.hex)
 n <- nrow(iris.VA.dir.hex)
@@ -84,7 +84,7 @@ print(n)
 if (n != 300) {
     stop("VA nrows is wrong")
 }
-if (class(iris.VA.dir.hex) != "H2OParsedDataVA") {
+if (class(iris.VA.dir.hex) != "H2OParsedData") {
     stop("iris.VA.dir.hex is the wrong type")
 }
 print ("VA import worked")
@@ -92,7 +92,7 @@ print ("VA import worked")
 
 heading("Testing directory importHDFS for FV")
 url <- sprintf("hdfs://%s%s", hdfs_name_node, hdfs_iris_dir)
-iris.FV.dir.hex <- h2o.importFolder(conn, url, pattern="*.csv")
+iris.FV.dir.hex <- h2o.importFolder(conn, url, pattern="*.csv", version = 2)
 head(iris.FV.dir.hex)
 tail(iris.FV.dir.hex)
 n <- nrow(iris.FV.dir.hex)
