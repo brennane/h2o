@@ -135,7 +135,7 @@ public class Inspect extends Request {
     if( f instanceof RFModel ) {
       RFModel rfModel = (RFModel)f;
       JsonObject response = new JsonObject();
-      return RFView.redirect(response, rfModel._selfKey, rfModel._dataKey, true);
+      return RFView.redirect(response, rfModel._selfKey, rfModel._frKey, true);
     }
     /*if( f instanceof PCAModel ) {
       PCAModel m = (PCAModel)f;
@@ -204,10 +204,6 @@ public class Inspect extends Request {
     return r;
   }
 
-
-  public Response serveValueArray(final ValueArray va) {
-    return serveValueArray(va, va._cols.length);
-  }
 
   /**
    * serve the value array with a capped # of columns [0,max_columns)

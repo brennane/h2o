@@ -1628,8 +1628,13 @@ public class RequestArguments extends RequestStatics {
     @Override protected Value parse(String input) throws IllegalArgumentException {
       Key k = Key.make(input);
       Value v = DKV.get(k);
-      if (v == null)
-        throw new IllegalArgumentException("Key "+input+" not found!");
+      if (v == null) {
+        if( k.user_allowed() ) { // FrameKey?
+          v = DKV.get(ValueArray.makeVAKey(k)); // Try the VA flavor
+          if( v == null ) 
+            throw new IllegalArgumentException("Key "+input+" not found!");
+        }
+      }
       return v;
     }
 

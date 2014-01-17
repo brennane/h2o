@@ -78,15 +78,17 @@ public class Parse extends Request {
       if(_excludeExpression.specified())
         exclude = makePattern(_excludeExpression.value());
       ArrayList<Key> keys = new ArrayList();
-     // boolean badkeys = false;
+      // boolean badkeys = false;
       for( Key key : H2O.keySet() ) { // For all keys
-        if( !key.user_allowed() ) continue;
-        String ks = key.toString();
+        Key key2 = key;
+        Value v2 = DKV.get(key);  // Look at it
+        if( v2 != null && v2.type()==TypeMap.VALUE_ARRAY )
+          key2 = ValueArray.makeFRKey(key);
+        String ks = key2.toString();
         if( !p.matcher(ks).matches() ) // Ignore non-matching keys
           continue;
         if(exclude != null && exclude.matcher(ks).matches())
           continue;
-        Value v2 = DKV.get(key);  // Look at it
         if( !v2.isRawData() ) // filter common mistake such as *filename* with filename.hex already present
           continue;
         keys.add(key);        // Add to list
@@ -125,6 +127,7 @@ public class Parse extends Request {
     }
 
     private final String keyRow(Key k){
+      if( !k.user_allowed() ) k = ValueArray.makeFRKey(k);
       return "<tr><td>" + k + "</td></tr>\n";
     }
 
@@ -175,7 +178,9 @@ public class Parse extends Request {
     @Override protected String defaultValue() {
       PSetup setup = _source.value();
       if( setup == null ) return null;
-      String n = setup._keys.get(0).toString();
+      Key k2 = setup._keys.get(0);
+      if( !k2.user_allowed() ) k2 = ValueArray.makeFRKey(k2);
+      String n = k2.toString();
       int sep = n.lastIndexOf(File.separatorChar);
       if( sep > 0 ) n = n.substring(sep+1);
       int dot = n.lastIndexOf('.');

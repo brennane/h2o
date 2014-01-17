@@ -33,9 +33,16 @@ public class StoreView extends Request {
       if( filter != null && // Have a filter?
           key.toString().indexOf(filter) == -1 )
         continue; // Ignore this filtered-out key
-      if( !key.user_allowed() ) // Also filter out for user-keys
-        continue;
-      if( H2O.get(key) == null ) continue; // Ignore misses
+      Value val = H2O.get(key);
+      if( val == null ) continue; // Ignore misses
+      if( !key.user_allowed() ) { // Also filter out for user-keys
+        // VA keys are hidden, but act as a Frame key on-demand.
+        if( val.type()!=TypeMap.VALUE_ARRAY ) continue;
+        // In this case, pretend we can see the Frame key covering a VA key
+        // (if the Frame key is actually there, we'll get it the normal way).
+        Key frKey = ValueArray.makeFRKey(key);
+        if( H2O.raw_get(frKey) != null ) continue;
+      }
       keys[len++] = key; // Capture the key
       if( len == keys.length ) {
         // List is full; stop
@@ -88,6 +95,7 @@ public class StoreView extends Request {
 
   private JsonObject formatKeyRow(H2O cloud, Key key, Value val) {
     JsonObject result = new JsonObject();
+    if( !key.user_allowed() ) key = ValueArray.makeFRKey(key);
     result.addProperty(KEY, key.toString());
     result.addProperty(VALUE_SIZE,val.length());
 
