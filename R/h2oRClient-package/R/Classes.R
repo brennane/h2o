@@ -520,15 +520,14 @@ setMethod("colnames", "H2OParsedData", function(x) {
   unlist(lapply(res$cols, function(y) y$name))
 })
 
-# TODO: Want colnames<- to modify in place
 setMethod("colnames<-", signature(x="H2OParsedData", value="H2OParsedData"), 
-  function(x, value) { h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, source=value@key); return(x) })
+  function(x, value) { h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, copy_from=value@key); return(x) })
 
 setMethod("colnames<-", signature(x="H2OParsedData", value="character"),
   function(x, value) {
     if(length(value) != ncol(x)) stop("Mismatched column dimensions!")
-    stop("Unimplemented"); return(x)
-  })
+    h2o.__remoteSend(x@h2o, h2o.__PAGE_COLNAMES, target=x@key, comma_separated_list=value); return(x)
+})
 
 setMethod("names", "H2OParsedData", function(x) { colnames(x) })
 setMethod("names<-", "H2OParsedData", function(x, value) { names(x) <- value })
