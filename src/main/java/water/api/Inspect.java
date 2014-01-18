@@ -93,6 +93,14 @@ public class Inspect extends Request {
     }
     if( val.type() == TypeMap.PRIM_B )
       return serveUnparsedValue(key, val);
+    // If both VA & Frame are available, for Inspect1 - default to the VA view.
+    if( val.type()==TypeMap.FRAME ) {
+      Key vkey = ValueArray.makeVAKey(key);
+      Value val2 = DKV.get(vkey);
+      if( val2 != null ) {
+        val = val2;
+      }
+    }
     Freezable f = val.getFreezable();
     if( f instanceof ValueArray ) {
       ValueArray ary = (ValueArray)f;
@@ -214,7 +222,7 @@ public class Inspect extends Request {
 
     JsonObject result = new JsonObject();
     result.addProperty(VALUE_TYPE, "parsed");
-    result.addProperty(KEY, va._key.toString());
+    result.addProperty(KEY, ValueArray.makeFRKey(va._key).toString());
     result.addProperty(NUM_ROWS, va._numrows);
     result.addProperty(NUM_COLS, va._cols.length);
     result.addProperty(ROW_SIZE, va._rowsize);
