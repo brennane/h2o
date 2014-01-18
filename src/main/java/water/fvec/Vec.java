@@ -294,9 +294,8 @@ public class Vec extends Iced {
       _size += rs._size;
       _isInt &= rs._isInt;
     }
-    @Override public boolean logVerbose() {
-      return !H2O.DEBUG;
-    }
+    // Just toooo common to report always.  Drowning in multi-megabyte log file writes.
+    @Override public boolean logVerbose() { return false; }
   }
 
   /** Writing into this Vector from *some* chunk.  Immediately clear all caches
