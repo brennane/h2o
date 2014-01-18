@@ -1,11 +1,11 @@
 package water.api;
 
 import water.*;
+import water.fvec.Frame;
 
 import com.google.gson.JsonObject;
 
 public class SetColumnNames extends Request {
-
 
   protected final H2OHexKey _tgtKey = new H2OHexKey("target");
 
@@ -22,13 +22,19 @@ public class SetColumnNames extends Request {
 
   @Override protected Response serve() {
     ValueArray tgt = _tgtKey.value();
-    tgt.setColumnNames(_srcKey.value().colNames());
+    String[] names = _srcKey.value().colNames();
+    tgt.setColumnNames(names);
+    Key frKey = ValueArray.makeFRKey(tgt._key);
+    Frame fr = DKV.get(frKey).get();
+    fr._names = names;
+
     // Must write in the new header.  Must use DKV instead of UKV, because do
     // not want to delete the underlying data.
     Futures fs = new Futures();
     DKV.put(tgt._key,tgt,fs);
+    DKV.put(   frKey,fr ,fs);
     fs.blockForPending();
-    return Inspect.redirect(new JsonObject(), tgt._key);
+    return Inspect.redirect(new JsonObject(), frKey);
   }
   public static String link(Key k, String s){
     return "<a href='SetColumnNames.query?target="+k+"'>" + s + "</a>";
