@@ -84,6 +84,7 @@ public class Parse extends Request {
         Value v2 = DKV.get(key);  // Look at it
         if( v2 != null && v2.type()==TypeMap.VALUE_ARRAY )
           key2 = ValueArray.makeFRKey(key);
+        else if( !key.user_allowed() ) continue;
         String ks = key2.toString();
         if( !p.matcher(ks).matches() ) // Ignore non-matching keys
           continue;
