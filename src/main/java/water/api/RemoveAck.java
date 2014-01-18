@@ -1,6 +1,6 @@
 package water.api;
 
-import water.Value;
+import water.*;
 
 import com.google.gson.JsonObject;
 
@@ -10,6 +10,12 @@ public class RemoveAck extends Request {
   @Override
   protected Response serve() {
     Value v = _key.value();
+    Key k = v._key;
+    if( !k.user_allowed() ) {
+      Key k2 = ValueArray.makeFRKey(k);
+      if( DKV.get(k) != null || DKV.get(k2) != null )
+        k = k2;                 // Display the user-friendly key
+    }      
     String key = v._key.toString();
     JsonObject response = new JsonObject();
     response.addProperty(RequestStatics.KEY, key);

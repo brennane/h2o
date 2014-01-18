@@ -1619,10 +1619,11 @@ public class RequestArguments extends RequestStatics {
     }
     public void setValue(Value v){
       record()._value = v;
-      record()._originalValue = v._key.toString();
+      record()._originalValue = (v._key.user_allowed() ? v._key : ValueArray.makeFRKey(v._key)).toString();
     }
     public H2OExistingKey(String name, Key key) {
       super(TypeaheadKeysRequest.class, name, false);
+      assert key.user_allowed();
       _defaultValue = key;
     }
     @Override protected Value parse(String input) throws IllegalArgumentException {

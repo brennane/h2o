@@ -164,7 +164,7 @@ public final class ParseDataset extends Job {
       }
     } else if(!keys.isEmpty())
       gSetup = ParseDataset.guessSetup(Utils.getFirstUnzipedBytes(keys.get(0)),setup,checkHeader);
-    if(!gSetup.valid())
+    if( gSetup==null || !gSetup.valid())
       throw new ParseSetupGuessException("",gSetup,null);
     if(headerKey != null){ // separate headerKey
       Value v = DKV.get(headerKey);
@@ -191,7 +191,7 @@ public final class ParseDataset extends Job {
         if(hSetup._setup._ncols != gSetup._setup._ncols)
           throw new ParseSetupGuessException("Header file has different number of columns than the rest!, expected " + gSetup._setup._ncols + " columns, got " + hSetup._setup._ncols + ", header: " + Arrays.toString(hSetup._setup._columnNames),gSetup,null);
         if(hSetup._data != null && hSetup._data.length > 1){// the hdr file had both hdr and data, it better be part of the parse and represent the global parser setup
-          if(!headerKeyPartOfParse) throw new ParseSetupGuessException(headerKey + " can not be used as a header file. Please either parse it separately first or include the file in the parse. Raw (unparsed) files can only be used as headers if they are included in the parse or they contain ONLY the header and NO DATA.",gSetup,null);
+          if(!headerKeyPartOfParse) throw new ParseSetupGuessException(ValueArray.makeFRKey(headerKey) + " can not be used as a header file. Please either parse it separately first or include the file in the parse. Raw (unparsed) files can only be used as headers if they are included in the parse or they contain ONLY the header and NO DATA.",gSetup,null);
           else if(gSetup._setup.isCompatible(hSetup._setup)){
             gSetup = hSetup;
             keys.add(headerKey); // put the key back so the file is parsed!
