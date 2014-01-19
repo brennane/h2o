@@ -472,7 +472,9 @@ public class DParseTask extends MRTask<DParseTask> implements CustomParser.DataO
     // let any pending progress reports finish
     DKV.write_barrier();
     // finally make the value array header
-    new ValueArray(_vaKey, _numRows, off, cols).close(_job.dest(),null);
+    Futures fs = new Futures();
+    new ValueArray(_vaKey, _numRows, off, cols).close(_job.dest(),fs);
+    fs.blockForPending();
   }
 
   protected void createEnums() {
