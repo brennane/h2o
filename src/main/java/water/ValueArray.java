@@ -1,16 +1,16 @@
 package water;
 
-import water.H2O.H2OCountedCompleter;
-import water.Job.ProgressMonitor;
-import water.fvec.*;
-import water.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import jsr166y.CountedCompleter;
+import water.H2O.H2OCountedCompleter;
+import water.Job.ProgressMonitor;
+import water.fvec.*;
+import water.util.Log;
 
 /**
 * Large Arrays & Arraylets
@@ -578,16 +578,16 @@ public class ValueArray extends Iced implements Cloneable {
   public Futures close(Key frKey, Futures fs) {
     assert makeVAKey(frKey).equals(_key);
     UKV.put(_key,this,fs);
-    if( fs != null ) fs.blockForPending();
     // Auto-build a Frame upfront, but not for VA raw byte data
     if( _cols.length>1 || _cols[0]._name!=null ) {
-      Frame fr = convert();
+      if( fs != null ) fs.blockForPending();
+      Frame fr = convert(fs);
       UKV.put(frKey,fr,fs);
     }
     return fs;                  // Flow coding
   }
 
-  private Frame convert() {
+  private Frame convert(Futures fs) {
     String[] names = new String[_cols.length];
     // A new random VectorGroup
     Key keys[] = new Vec.VectorGroup().addVecs(_cols.length);
@@ -597,7 +597,7 @@ public class ValueArray extends Iced implements Cloneable {
     Vec[] vecs = new Vec[avs.length];
     for(int i = 0; i < avs.length; ++i) {
       avs[i]._domain = _cols[i]._domain;
-      vecs[i] = avs[i].close(null);
+      vecs[i] = avs[i].close(fs);
     }
     return new Frame(names, vecs);
   }
@@ -606,8 +606,18 @@ public class ValueArray extends Iced implements Cloneable {
     final Key _vaKey;
     final Key[] _keys;
     AppendableVec[] _vecs;
+    transient Futures _fs;
 
     Converter( Key vaKey, Key[] keys ) { _vaKey = vaKey; _keys = keys; }
+    @Override public void init() {
+      super.init();
+      _fs = new Futures();
+    }
+    @Override public final void lonCompletion( CountedCompleter caller ) {
+      super.lonCompletion(caller);
+      _fs.blockForPending();
+    }
+
     @Override public void map(Key key) {
       ValueArray va = DKV.get(_vaKey).get();
       AutoBuffer bits = va.getChunk(key);
@@ -642,16 +652,13 @@ public class ValueArray extends Iced implements Cloneable {
         }
       }
       for(int i = 0; i < chunks.length; ++i)
-        chunks[i].close(cidx, null);
+        chunks[i].close(cidx, _fs);
     }
 
     @Override public void reduce(Converter other) {
-      if(_vecs == null)
-        _vecs = other._vecs;
-      else {
-        for(int i = 0; i < _vecs.length; i++)
-          _vecs[i].reduce(other._vecs[i]);
-      }
+      if(_vecs == null) _vecs = other._vecs;
+      else for(int i = 0; i < _vecs.length; i++)
+             _vecs[i].reduce(other._vecs[i]);
     }
   }
 
@@ -712,7 +719,7 @@ public class ValueArray extends Iced implements Cloneable {
           }
         assert off == buf.length;
         Value val = new Value(ValueArray.getChunkKey(_lo,vaKey),buf);
-        DKV.put(val._key,val,_fs);
+        DKV.put(val._key,val,_fs,true);
       }
       @Override public void closeLocal() { _fs.blockForPending(); }
     }.doAll(fr);
