@@ -27,7 +27,7 @@ public abstract class UKV {
     // If the old Value was a large array, we need to delete the leftover
     // chunks - they are unrelated to the new Value which might be either
     // bigger or smaller than the old Value.
-    if( res != null && (res.isArray() || res.isFrame()) )
+    if( res != null && res.isArray() )
       remove(res,fs);
   }
 
