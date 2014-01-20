@@ -551,7 +551,7 @@ public class ValueArray extends Iced implements Cloneable {
     return Key.make(sfrKey,Key.DEFAULT_DESIRED_REPLICA_FACTOR,Key.BUILT_IN_KEY);
   }
   static public Key makeFRKey( Key vaKey ) {
-    assert vaKey.type()==Key.BUILT_IN_KEY;
+    assert vaKey.type()==Key.BUILT_IN_KEY : "Key "+vaKey+" is not a ValueArray, "+DKV.get(vaKey).get().getClass();
     return Key.make(Arrays.copyOfRange(vaKey._kb,Vec.KEY_PREFIX_LEN,vaKey._kb.length));
   }
 
